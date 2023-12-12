@@ -1,0 +1,29 @@
+{
+  "project_info": {
+    "project_number": "844439077757",
+    "project_id": "family-board-e9600",
+    "storage_bucket": "family-board-e9600.appspot.com"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:844439077757:android:145d93bdcd26da30598214",
+        "android_client_info": {
+          "package_name": "com.jm.familyboard"
+        }
+      },
+      "oauth_client": [],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBOF1-nSR0A8anGIje9oN9cMD6IxULgGAM"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": []
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

@@ -11,7 +11,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
 
-class MainActivity : ComponentActivity() {
+class SignUp : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContent {
@@ -21,7 +21,7 @@ class MainActivity : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    MainScreen()
+                    SignUpScreen()
                 }
             }
         }
@@ -29,14 +29,14 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun MainScreen() {
+fun SignUpScreen() {
 
 }
 
 @Preview(showSystemUi = true)
 @Composable
-fun MainScreenPreview() {
+fun SignUpPreview() {
     FamilyBoardTheme {
-        MainScreen()
+        SignUpScreen()
     }
 }

@@ -1,3 +1,5 @@
 <resources>
     <string name="app_name">FamilyBoard</string>
+    <string name="title_activity_login">Login</string>
+    <string name="title_activity_sign_up">SignUp</string>
 </resources>
