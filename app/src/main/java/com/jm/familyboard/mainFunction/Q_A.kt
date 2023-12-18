@@ -1,16 +1,24 @@
 package com.jm.familyboard.mainFunction
 
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.ui.Modifier
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
+import androidx.navigation.NavHostController
+import androidx.navigation.compose.rememberNavController
 import com.jm.familyboard.R
+import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
 
 @Composable
-fun Q_AScreen() {
-    Column {
+fun Q_AScreen(navController: NavHostController) {
+    Column(Modifier.fillMaxSize()) {
+        AppBar(screenName = stringResource(id = R.string.q_a)) {
+            navController.popBackStack()
+        }
         Text(stringResource(id = R.string.q_a))
     }
 }
@@ -19,6 +27,6 @@ fun Q_AScreen() {
 @Composable
 fun Q_APreview() {
     FamilyBoardTheme {
-        Q_AScreen()
+        Q_AScreen(rememberNavController())
     }
 }

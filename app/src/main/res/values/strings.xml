@@ -2,9 +2,30 @@
     <string name="app_name">FamilyBoard</string>
     <string name="title_activity_login">Login</string>
     <string name="title_activity_sign_up">SignUp</string>
+    <string name="back">뒤로 가기</string>
+    <string name="please_do_login">로그인 후 이용 해 주세요.</string>
+
     <string name="main">메인 화면</string>
+
     <string name="announcement">공지 사항</string>
+
+    <string name="announcement_nav_route_1">announcement_list</string>
+    <string name="announcement_nav_route_2">announcement_detail</string>
+
+    <string name="no">글 번호</string>
+    <string name="title">제목</string>
+    <string name="content">내용</string>
+    <string name="date">작성 날짜</string>
+
+    <string name="database_no">no</string>
+    <string name="database_title">title</string>
+    <string name="database_content">content</string>
+    <string name="database_date">date</string>
+
+
     <string name="family_information">가족 정보</string>
+
     <string name="my_information">내 정보</string>
-    <string name="q_a">Q_A</string>
+
+    <string name="q_a">질의응답</string>
 </resources>
