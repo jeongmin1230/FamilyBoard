@@ -71,7 +71,7 @@ fun GetAnnouncement(context: Context, announcementNavController: NavHostControll
     var announcements by remember { mutableStateOf(emptyList<Announcement>()) }
 
     val database = FirebaseDatabase.getInstance()
-    val announcementReference = database.getReference("announcement")
+    val announcementReference = database.getReference("group_name/family1/announcement")
 
     DisposableEffect(announcementReference) {
         val valueEventListener = object : ValueEventListener {
@@ -137,14 +137,13 @@ fun EachLayout(title: String, date: String, onClick: () -> Unit) {
 
 @Composable
 fun Detail(context: Context, no: Int) {
-    var detailNo by remember { mutableIntStateOf(no) }
     var detailTitle by remember { mutableStateOf("") }
     var detailContent by remember { mutableStateOf("") }
     var detailDate by remember { mutableStateOf("") }
     var announcements by remember { mutableStateOf(emptyList<Announcement>()) }
 
     val database = FirebaseDatabase.getInstance()
-    val announcementReference = database.getReference("announcement")
+    val announcementReference = database.getReference("group_name/family1/announcement")
 
     DisposableEffect(announcementReference) {
         val valueEventListener = object : ValueEventListener {

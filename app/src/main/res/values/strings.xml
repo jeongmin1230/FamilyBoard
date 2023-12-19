@@ -1,7 +1,26 @@
 <resources>
     <string name="app_name">FamilyBoard</string>
+
+    <string name="title_activity_main">Main</string>
+
+    <string name="first">first</string>
+
     <string name="title_activity_login">Login</string>
+    <string name="login">로그인</string>
+
+    <string name="enter_email">email 입력</string>
+    <string name="enter_password">password 입력</string>
+    <string name="try_again">로그인을 다시 시도 해 주세요</string>
+    <string name="login_not_exists_email">There is no user record</string>
+    <string name="login_not_exists_email_toast">이미 탈퇴했거나 존재하지 않는 사용자입니다. 다시 확인 해 주세요.</string>
+    <string name="email_format">The email address is badly formatted.</string>
+    <string name="login_email_badly_format">이메일 형식이 올바르지 않습니다. 다시 확인 해 주세요.</string>
+    <string name="login_invalid_password">password</string>
+    <string name="login_invalid_password_toast">비밀 번호가 알맞지 않습니다. 다시 확인 해 주세요.</string>
+
     <string name="title_activity_sign_up">SignUp</string>
+    <string name="sign_up">회원가입</string>
+
     <string name="back">뒤로 가기</string>
     <string name="please_do_login">로그인 후 이용 해 주세요.</string>
 

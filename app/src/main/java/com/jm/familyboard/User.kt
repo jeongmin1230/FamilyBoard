@@ -1,6 +1,8 @@
 package com.jm.familyboard
 
 object User {
-    val name: String = ""
-    val email: String = ""
+    var name: String = ""
+    var email: String = ""
+    var groupName: String = ""
+    var familyType: String = ""
 }
