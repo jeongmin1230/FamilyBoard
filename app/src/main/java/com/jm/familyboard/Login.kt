@@ -7,6 +7,7 @@ import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
@@ -71,7 +72,7 @@ class Login : ComponentActivity() {
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
                 ) {
-                    Screen()
+                    FirstScreen()
                 }
             }
         }
@@ -79,7 +80,7 @@ class Login : ComponentActivity() {
 }
 
 @Composable
-fun Screen() {
+fun FirstScreen() {
     val context = LocalContext.current
     val navController = rememberNavController()
 
@@ -97,7 +98,7 @@ fun Screen() {
             }
         }
         composable(context.getString(R.string.title_activity_sign_up)) {
-            SignUpScreen()
+            SignUpScreen(navController)
         }
         composable(context.getString(R.string.title_activity_main)) {
             MainScreen()
@@ -192,7 +193,7 @@ fun LoginScreen(navController: NavHostController) {
                 Text(text = stringResource(id = R.string.sign_up),
                     modifier = Modifier
                         .weight(1f)
-                        .clickable { navController.navigate(context.getString(R.string.sign_up)) },
+                        .clickable(interactionSource = MutableInteractionSource(), indication = null) { navController.navigate(context.getString(R.string.title_activity_sign_up)) },
                     style = MaterialTheme.typography.bodyMedium.copy(Color.Black, textAlign = TextAlign.Center))
             }
             Spacer(modifier = Modifier.padding(bottom = 12.dp))
@@ -226,11 +227,11 @@ private fun loginUser(activity: Activity, navController: NavHostController, emai
 }
 
 private fun getUserData(activity: Activity, uid: String, password: String, navController: NavHostController) {
-    val userUid = FirebaseDatabase.getInstance().getReference("user/family1/composition")
-    val userEmailRef = userUid.child(uid).child("email")
-    val userNameRef = userUid.child(uid).child("name")
-    val userGroupNameRef = userUid.child(uid).child("group_name")
-    val userTypeRef = userUid.child(uid).child("family_type")
+    val userGroupNameComposition = FirebaseDatabase.getInstance().getReference("user/$uid")
+    val userEmailRef = userGroupNameComposition.child("email")
+    val userNameRef = userGroupNameComposition.child("name")
+    val userGroupNameRef = userGroupNameComposition.child("group_name")
+    val userRolesRef = userGroupNameComposition.child("roles")
 
     userEmailRef.addListenerForSingleValueEvent(object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
@@ -247,12 +248,12 @@ private fun getUserData(activity: Activity, uid: String, password: String, navCo
                                     val groupName = snapshot.getValue(String::class.java)
                                     if(groupName != null) {
                                         User.groupName = groupName
-                                        userTypeRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                                        userRolesRef.addListenerForSingleValueEvent(object : ValueEventListener {
                                             override fun onDataChange(snapshot: DataSnapshot) {
-                                                val familyType = snapshot.getValue(String::class.java)
-                                                if(familyType != null) {
-                                                    User.familyType = familyType
-                                                    storeUserCredentials(activity, name, email, password, groupName, familyType)
+                                                val roles = snapshot.getValue(String::class.java)
+                                                if(roles != null) {
+                                                    User.roles = roles
+                                                    storeUserCredentials(activity, name, email, password, groupName, roles)
                                                 }
                                             }
 
@@ -283,14 +284,14 @@ private fun getUserData(activity: Activity, uid: String, password: String, navCo
     })
 }
 
-private fun storeUserCredentials(activity: Activity, name: String, email: String, password: String, groupName: String, familyType: String) {
+private fun storeUserCredentials(activity: Activity, name: String, email: String, password: String, groupName: String, roles: String) {
     val sharedPreferences = activity.getSharedPreferences("UserCredentials", Context.MODE_PRIVATE)
     val editor = sharedPreferences.edit()
     editor.putString("name", name)
     editor.putString("email", email)
     editor.putString("password", password)
     editor.putString("groupName", groupName)
-    editor.putString("familyType", familyType)
+    editor.putString("roles", roles)
     editor.apply()
 }
 

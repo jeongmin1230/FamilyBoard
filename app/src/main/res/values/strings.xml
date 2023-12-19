@@ -20,6 +20,17 @@
 
     <string name="title_activity_sign_up">SignUp</string>
     <string name="sign_up">회원가입</string>
+    <string name="sign_up_essential">*</string>
+    <string name="sign_up_placeholder">을(를) 입력 해 주세요.</string>
+    <string name="sign_up_name">이름</string>
+    <string name="sign_up_email">이메일</string>
+    <string name="sign_up_password">비밀번호</string>
+    <string name="sign_up_confirm_password">비밀번호 확인</string>
+    <string name="sign_up_group_name">가족 그룹명</string>
+    <string name="sign_up_roles">가족 내 역할</string>
+    <string name="sign_up_route">가입 경로</string>
+    <string name="sign_up_nav_route_1">sign_up_enter_info</string>
+    <string name="sign_up_nav_route_2">sign_up_success</string>
 
     <string name="back">뒤로 가기</string>
     <string name="please_do_login">로그인 후 이용 해 주세요.</string>
@@ -45,6 +56,20 @@
     <string name="family_information">가족 정보</string>
 
     <string name="my_information">내 정보</string>
+    <string name="my_name">이름</string>
+    <string name="my_email">이메일</string>
+    <string name="my_roles">가족 내 역할</string>
+    <string name="my_group_name">가족 그룹명</string>
+
+    <string name="logout">로그아웃</string>
+    <string name="do_logout">로그아웃 하시겠습니까?</string>
+    <string name="done_logout">로그아웃 했습니다.</string>
+    <string name="withdrawal">탈퇴하기</string>
+    <string name="do_withdrawal">정말 탈퇴 하시겠습니까?\n해당 아이디로 작성한 모든 글이 삭제됩니다.</string>
+    <string name="done_withdrawal">이용해 주셔서 감사합니다. 회원 탈퇴 되었습니다.</string>
 
     <string name="q_a">질의응답</string>
+
+    <string name="yes">예</string>
+    <string name="not">아니오</string>
 </resources>

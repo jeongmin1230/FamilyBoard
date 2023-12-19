@@ -7,7 +7,6 @@ import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -15,9 +14,7 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
@@ -39,6 +36,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.R
+import com.jm.familyboard.User
 import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
 
@@ -71,7 +69,7 @@ fun GetAnnouncement(context: Context, announcementNavController: NavHostControll
     var announcements by remember { mutableStateOf(emptyList<Announcement>()) }
 
     val database = FirebaseDatabase.getInstance()
-    val announcementReference = database.getReference("group_name/family1/announcement")
+    val announcementReference = database.getReference("${User.groupName}/announcement")
 
     DisposableEffect(announcementReference) {
         val valueEventListener = object : ValueEventListener {
@@ -143,7 +141,7 @@ fun Detail(context: Context, no: Int) {
     var announcements by remember { mutableStateOf(emptyList<Announcement>()) }
 
     val database = FirebaseDatabase.getInstance()
-    val announcementReference = database.getReference("group_name/family1/announcement")
+    val announcementReference = database.getReference("${User.groupName}/announcement")
 
     DisposableEffect(announcementReference) {
         val valueEventListener = object : ValueEventListener {

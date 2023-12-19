@@ -12,8 +12,12 @@ import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextFieldColors
+import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.ui.Alignment
@@ -23,8 +27,10 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.rememberNavController
 import com.airbnb.lottie.compose.LottieAnimation
@@ -78,8 +84,50 @@ fun EachLayout(text: String, animation: Int, bgColor: Color, route: String, navC
     }
 }
 
+@Composable
+fun ConfirmDialog(onDismiss: () -> Unit, content: String, confirmAction: () -> Unit, dismissAction: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        text = {
+            Column(modifier = Modifier.fillMaxWidth()) {
+                Text(text = content)
+            }
+        },
+        containerColor = Color.White,
+        confirmButton = {
+            Text(text = stringResource(id = R.string.yes),
+                style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
+                modifier = Modifier.clickable { confirmAction() })
+        },
+        dismissButton = {
+            Text(text = stringResource(id = R.string.not),
+                style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
+                modifier = Modifier.clickable { dismissAction() })
+        },
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier.padding(horizontal = 10.dp)
+    )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun textFieldColors(color: Color): TextFieldColors {
+    return TextFieldDefaults.textFieldColors(
+        containerColor = color,
+        focusedIndicatorColor = Color.Transparent,
+        unfocusedIndicatorColor = Color.Transparent,
+        disabledIndicatorColor = Color.Transparent
+    )
+}
+
 @Preview
 @Composable
 fun EachLayoutPreview() {
     EachLayout("메세지", R.raw.announcement, Color(0XFFC6DBDA), "", rememberNavController())
+}
+
+@Preview
+@Composable
+fun ConfirmDialogPreview() {
+    ConfirmDialog({}, "content", {}, {})
 }

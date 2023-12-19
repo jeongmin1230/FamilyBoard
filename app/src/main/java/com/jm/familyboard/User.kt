@@ -4,5 +4,12 @@ object User {
     var name: String = ""
     var email: String = ""
     var groupName: String = ""
-    var familyType: String = ""
+    var roles: String = ""
+
+    fun deleteInfo() {
+        name = ""
+        email = ""
+        groupName = ""
+        roles = ""
+    }
 }
