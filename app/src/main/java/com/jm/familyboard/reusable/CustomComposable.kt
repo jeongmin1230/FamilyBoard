@@ -97,7 +97,9 @@ fun ConfirmDialog(onDismiss: () -> Unit, content: String, confirmAction: () -> U
         confirmButton = {
             Text(text = stringResource(id = R.string.yes),
                 style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
-                modifier = Modifier.clickable { confirmAction() })
+                modifier = Modifier
+                    .padding(start = 10.dp)
+                    .clickable { confirmAction() })
         },
         dismissButton = {
             Text(text = stringResource(id = R.string.not),
@@ -107,6 +109,39 @@ fun ConfirmDialog(onDismiss: () -> Unit, content: String, confirmAction: () -> U
         properties = DialogProperties(usePlatformDefaultWidth = false),
         modifier = Modifier.padding(horizontal = 10.dp)
     )
+}
+
+@Composable
+fun WhatMean(mean: String, essential: Boolean) {
+    Row {
+        Text(
+            text = mean,
+            style = MaterialTheme.typography.bodySmall.copy(Color.DarkGray),
+            modifier = Modifier.padding(start = 10.dp, bottom = 10.dp)
+        )
+        if(essential) {
+            Text(
+                text = stringResource(id = R.string.sign_up_essential),
+                style = MaterialTheme.typography.bodySmall.copy(Color.Red)
+            )
+        }
+    }
+}
+
+@Composable
+fun TextFieldPlaceholderOrSupporting(isPlaceholder: Boolean, text: String, correct: Boolean) {
+    if(isPlaceholder) {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall.copy(Color.LightGray)
+        )
+    } else {
+        Text(
+            text = text,
+            style = MaterialTheme.typography.bodySmall.copy(color = if(correct) Color.Blue else Color.Red, fontWeight = FontWeight.W400),
+            modifier = Modifier.padding(top = 2.dp)
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
