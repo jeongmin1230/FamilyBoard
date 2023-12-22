@@ -1,14 +1,15 @@
 package com.jm.familyboard
 
 import android.content.Context
-import android.widget.Toast
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -28,6 +29,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.input.ImeAction
+import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
@@ -37,12 +40,18 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.FirebaseDatabase
 import com.jm.familyboard.reusable.AppBar
+import com.jm.familyboard.reusable.NewPasswordSupportingText
+import com.jm.familyboard.reusable.ConfirmPasswordSupportingText
 import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
 import com.jm.familyboard.reusable.WhatMean
+import com.jm.familyboard.reusable.checkEmailDuplicate
+import com.jm.familyboard.reusable.checkGroupName
+import com.jm.familyboard.reusable.isEmailValid
+import com.jm.familyboard.reusable.rolesRadioButton
+import com.jm.familyboard.reusable.signUp
 import com.jm.familyboard.reusable.textFieldColors
+import com.jm.familyboard.reusable.textFieldKeyboard
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
 
 @Composable
@@ -71,23 +80,21 @@ fun SignUpScreen(loginNavController: NavHostController) {
 fun EnterInfo(context: Context, signUpNavController: NavHostController) {
     val nameValue = remember { mutableStateOf("") }
     val nameBoolean = remember { mutableStateOf(true) }
+
     val emailValue = remember { mutableStateOf("") }
-    val emailSupporting = remember { mutableStateOf("") }
     val emailTest = remember { mutableIntStateOf(0) }
     val isEmailTFFocused = remember { mutableStateOf(false) }
-    // 0 = 공백 -> 필수 항목임 ,2 -> 형식 맞지 않음, 3 -> 형식은 맞음, 4 -> 사용 가능
     val passwordValue = remember { mutableStateOf("") }
-    val passwordSupporting = remember { mutableStateOf("") }
     val passwordBoolean = remember { mutableStateOf(false) }
     val passwordConfirmValue = remember { mutableStateOf("") }
-    val passwordConfirmSupporting = remember { mutableStateOf("") }
     val passwordConfirmBoolean = remember { mutableStateOf(false) }
+
     val groupNameValue = remember { mutableStateOf("") }
-    val groupNameSupporting = remember { mutableStateOf("") }
-    val groupNameBoolean = remember { mutableStateOf(false) }
+    val groupNameTest = remember { mutableIntStateOf(0) }
+    val isGroupNameTFFocused = remember { mutableStateOf(false) }
+
     val rolesValue = remember { mutableStateOf("") }
     val rolesBoolean = remember { mutableStateOf(false) }
-    val routeValue = remember { mutableStateOf("") }
     Column {
         Column(
             modifier = Modifier
@@ -99,15 +106,15 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
             EnterInfoColumn(
                 mean = stringResource(id = R.string.sign_up_name),
                 tfValue = nameValue,
-                supportingText = if(nameValue.value.trim().isEmpty()) stringResource(id = R.string.sign_up_essential_text) else "",
+                keyboardOptions = textFieldKeyboard(ImeAction.Next, KeyboardType.Text),
                 isCorrect = nameBoolean,
                 visualTransformation = VisualTransformation.None
-            )
+            ) {}
             if(!isEmailTFFocused.value && emailValue.value.trim().isNotEmpty()) {
                 LaunchedEffect(this) {
                     emailTest.intValue = isEmailValid(emailValue.value)
                     if(emailTest.intValue >= 3) {
-                        checkEmailDuplicate(emailValue.value, emailTest)
+                        checkEmailDuplicate(emailValue.value.replace("@", "_").replace(".", "_"), emailTest)
                     }
                 }
             }
@@ -121,12 +128,10 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 modifier = Modifier
                     .onFocusChanged { isEmailTFFocused.value = it.isFocused }
                     .fillMaxSize(),
-                supportingText = {
-                    if(emailValue.value.isEmpty()) TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_essential_text), correct = false)
-                    if(!isEmailTFFocused.value && emailValue.value.isNotEmpty()) {
+                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
+                supportingText = { if(!isEmailTFFocused.value) {
                         when(emailTest.intValue) {
-                            0 -> { }
-                            1 -> { }
+                            1 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_essential_text), correct = false) }
                             2 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_invalid), correct = false) }
                             3 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid_but_duplicate), correct = false)}
                             4 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid), correct = true) }
@@ -137,50 +142,60 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 singleLine = true,
                 colors = textFieldColors(Color.Blue.copy(0.2f))
             )
-/*            emailBoolean.value = isEmailValid(emailValue.value)
-            EnterInfoColumn(
-                mean = stringResource(id = R.string.sign_up_email),
-                tfValue = emailValue,
-                supportingText = stringResource(id = R.string.sign_up_essential_text),
-                isCorrect = emailBoolean,
-                visualTransformation = VisualTransformation.None
-            )*/
+            Spacer(modifier = Modifier.height(10.dp))
             EnterInfoColumn(
                 mean = stringResource(id = R.string.sign_up_password),
                 tfValue = passwordValue,
-                supportingText = stringResource(id = R.string.sign_up_essential_text),
+                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 isCorrect = passwordBoolean,
                 visualTransformation = PasswordVisualTransformation('*'),
-            )
+            ) { NewPasswordSupportingText(passwordValue.value)}
             EnterInfoColumn(
                 mean = stringResource(id = R.string.sign_up_confirm_password),
                 tfValue = passwordConfirmValue,
-                supportingText = stringResource(id = R.string.sign_up_essential_text),
+                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 isCorrect = passwordConfirmBoolean,
                 visualTransformation = PasswordVisualTransformation('*'),
-            )
-            EnterInfoColumn(
-                mean = stringResource(id = R.string.sign_up_group_name),
-                tfValue = groupNameValue,
-                supportingText = stringResource(id = R.string.sign_up_essential_text),
-                isCorrect = groupNameBoolean,
-                visualTransformation = VisualTransformation.None
+            ) { ConfirmPasswordSupportingText(passwordValue.value, passwordConfirmValue.value)}
+            if(!isGroupNameTFFocused.value && groupNameValue.value.trim().isNotEmpty()) {
+                LaunchedEffect(this) {
+                    checkGroupName(groupNameValue.value, groupNameTest)
+                }
+            }
+            WhatMean(mean = stringResource(id = R.string.sign_up_group_name), essential = true)
+            TextField(
+                value = groupNameValue.value,
+                onValueChange = { groupNameValue.value = it},
+                textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                placeholder = { TextFieldPlaceholderOrSupporting(true, "${stringResource(id = R.string.sign_up_group_name)} ${stringResource(id = R.string.sign_up_placeholder)}",true) },
+                visualTransformation = VisualTransformation.None,
+                modifier = Modifier
+                    .onFocusChanged { isGroupNameTFFocused.value = it.isFocused }
+                    .fillMaxSize(),
+                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
+                supportingText = {
+                    if(!isGroupNameTFFocused.value) {
+                        when(groupNameTest.intValue) {
+                            -1 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_essential_text), correct = false) }
+                            1 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_group_name_duplicate), correct = false) }
+                            2 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_group_name_not_duplicate), correct = true) }
+                        }
+                    }
+                },
+                singleLine = true,
+                colors = textFieldColors(Color.Blue.copy(0.2f))
             )
             rolesValue.value.ifEmpty { rolesBoolean.value = !rolesBoolean.value }
-            EnterInfoColumn(
-                mean = stringResource(id = R.string.sign_up_roles),
-                tfValue = rolesValue,
-                supportingText = stringResource(id = R.string.sign_up_essential_text),
-                isCorrect = rolesBoolean,
-                visualTransformation = VisualTransformation.None
-            )
-            UnrestrictedTextField(mean = stringResource(id = R.string.sign_up_route), essential = false, tfValue = routeValue)
+            WhatMean(mean = stringResource(id = R.string.sign_up_roles), essential = true)
+            rolesValue.value = rolesRadioButton()
         }
         val condition = nameValue.value.trim().isNotEmpty()
                 && emailValue.value.trim().isNotEmpty()
+                && emailTest.intValue == 4
                 && passwordValue.value.trim().isNotEmpty()
                 && passwordConfirmValue.value.trim().isNotEmpty()
                 && groupNameValue.value.trim().isNotEmpty()
+                && groupNameTest.intValue == 2
                 && rolesValue.value.trim().isNotEmpty()
                 && (passwordValue.value == passwordConfirmValue.value)
 
@@ -192,9 +207,9 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EnterInfoColumn(mean: String, tfValue: MutableState<String>, supportingText: String, isCorrect: MutableState<Boolean>,visualTransformation: VisualTransformation) {
+fun EnterInfoColumn(mean: String, tfValue: MutableState<String>, keyboardOptions: KeyboardOptions, isCorrect: MutableState<Boolean>, visualTransformation: VisualTransformation, supportingText: @Composable () -> Unit) {
     Column(modifier = Modifier
-        .padding(bottom = 10.dp)
+        .padding(bottom = 14.dp)
         .fillMaxSize()) {
         WhatMean(mean = mean, essential = true)
         TextField(
@@ -205,28 +220,9 @@ fun EnterInfoColumn(mean: String, tfValue: MutableState<String>, supportingText:
             interactionSource = MutableInteractionSource(),
             visualTransformation = visualTransformation,
             modifier = Modifier.fillMaxSize(),
-            supportingText = { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = supportingText, correct = isCorrect.value)},
+            keyboardOptions = keyboardOptions,
+            supportingText = { supportingText() },
             singleLine = true,
-            colors = textFieldColors(Color.Blue.copy(0.2f))
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun UnrestrictedTextField(mean: String, essential: Boolean, tfValue: MutableState<String>) {
-    Column(modifier = Modifier
-        .padding(bottom = 10.dp)
-        .fillMaxSize()) {
-        WhatMean(mean = mean, essential = essential)
-        TextField(
-            value = tfValue.value,
-            onValueChange = { tfValue.value = it},
-            textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-            placeholder = { TextFieldPlaceholderOrSupporting(true, "$mean ${stringResource(id = R.string.sign_up_placeholder)}",true) },
-            interactionSource = MutableInteractionSource(),
-            visualTransformation = VisualTransformation.None,
-            modifier = Modifier.fillMaxSize(),
             colors = textFieldColors(Color.Blue.copy(0.2f))
         )
     }
@@ -255,40 +251,6 @@ fun DoneSignUp(context: Context, loginNavController: NavHostController) {
             loginNavController.navigate(context.getString(R.string.first))
         }
     }
-}
-
-fun signUp(context: Context, groupName: String, name: String, roles: String, email: String, password: String, signUpNavController: NavHostController) {
-    val auth = FirebaseAuth.getInstance()
-    auth.createUserWithEmailAndPassword(email.trim(), password.trim())
-        .addOnCompleteListener { task ->
-            if(task.isSuccessful) {
-                createDatabase(groupName, email, name, roles)
-                signUpNavController.navigate(context.getString(R.string.sign_up_nav_route_2))
-            } else {
-                println(task.exception)
-            }
-        }
-        .addOnFailureListener { e ->
-            Toast.makeText(context, "onFailure ${e.message}", Toast.LENGTH_SHORT).show()
-        }
-}
-
-private fun createDatabase(groupName: String, email: String, name: String, roles: String) {
-    val uid = FirebaseAuth.getInstance().currentUser?.uid
-    val emailRef = FirebaseDatabase.getInstance().getReference("user/email")
-    val splitEmail = email.split("@")
-    emailRef.child(splitEmail[0]).setValue(splitEmail[1])
-    generateDB("user/$uid", email, groupName, name, roles)
-    generateDB("$groupName/composition/$uid", email, groupName, name, roles)
-}
-
-private fun generateDB(path: String, groupName: String, email: String, name: String, roles: String) {
-    val ref = FirebaseDatabase.getInstance().getReference(path)
-    ref.child("email").setValue(email)
-    ref.child("group_name").setValue(groupName)
-    ref.child("name").setValue(name)
-    ref.child("roles").setValue(roles)
-
 }
 
 @Preview(showSystemUi = true)

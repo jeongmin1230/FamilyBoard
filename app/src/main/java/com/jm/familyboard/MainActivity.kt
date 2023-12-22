@@ -23,7 +23,7 @@ import com.jm.familyboard.mainFunction.AnnouncementScreen
 import com.jm.familyboard.mainFunction.FamilyInformationScreen
 import com.jm.familyboard.mainFunction.MyInformationScreen
 import com.jm.familyboard.mainFunction.Q_AScreen
-import com.jm.familyboard.reusable.EachLayout
+import com.jm.familyboard.reusable.EachMainMenuLayout
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
 
 class MainActivity : ComponentActivity() {
@@ -55,7 +55,7 @@ fun MainScreen() {
                         .weight(1f)
                         .fillMaxWidth()) {
                     Box(modifier = Modifier.weight(1f)) {
-                        EachLayout(
+                        EachMainMenuLayout(
                             text = stringResource(R.string.announcement),
                             animation = R.raw.announcement,
                             bgColor = Color(0xFFC6DBDA),
@@ -63,7 +63,7 @@ fun MainScreen() {
                             navController = navController)
                     }
                     Box(modifier = Modifier.weight(1f)) {
-                        EachLayout(
+                        EachMainMenuLayout(
                             text = stringResource(R.string.family_information),
                             animation = R.raw.family_information,
                             bgColor = Color(0XFFFEE1E8),
@@ -76,7 +76,7 @@ fun MainScreen() {
                         .weight(1f)
                         .fillMaxWidth()) {
                     Box(modifier = Modifier.weight(1f)) {
-                        EachLayout(
+                        EachMainMenuLayout(
                             text = stringResource(R.string.my_information),
                             animation = R.raw.my_information,
                             bgColor = Color(0XFFECD5E3),
@@ -84,7 +84,7 @@ fun MainScreen() {
                             navController = navController)
                     }
                     Box(modifier = Modifier.weight(1f)) {
-                        EachLayout(
+                        EachMainMenuLayout(
                             text = stringResource(R.string.q_a),
                             animation = R.raw.q_a,
                             bgColor = Color(0XFFF6EAC2),

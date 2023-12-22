@@ -1,10 +1,7 @@
 package com.jm.familyboard.mainFunction
 
 import android.content.Context
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -38,6 +35,7 @@ import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.R
 import com.jm.familyboard.User
 import com.jm.familyboard.reusable.AppBar
+import com.jm.familyboard.reusable.EachLayout
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
 
 @Composable
@@ -105,31 +103,6 @@ fun GetAnnouncement(context: Context, announcementNavController: NavHostControll
         EachLayout(announcement.title, announcement.date) {
             announcementNavController.navigate("${context.getString(R.string.announcement_nav_route_2)}/${announcement.no}")
         }
-    }
-}
-
-@Composable
-fun EachLayout(title: String, date: String, onClick: () -> Unit) {
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(horizontal = 10.dp, vertical = 4.dp)
-        .clickable { onClick() }
-        .border(BorderStroke(1.dp, Color.LightGray))) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge.copy(Color.Black),
-            modifier = Modifier
-                .padding(start = 4.dp)
-                .align(Alignment.Start)
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = date,
-            style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
-            modifier = Modifier
-                .padding(end = 4.dp)
-                .align(Alignment.End)
-        )
     }
 }
 
