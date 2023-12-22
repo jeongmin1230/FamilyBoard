@@ -43,7 +43,8 @@
     <string name="sign_up_children">자식</string>
     <string name="sign_up_etc">기타</string>
     <string name="sign_up_nav_route_2">sign_up_success</string>
-    <string name="sign_up_complete">로그인 하러 가기</string>
+    <string name="sign_up_complete">회원 가입이 완료되었습니다.\n\n가입 한 이메일로 다시 로그인 해 주세요.</string>
+    <string name="go_to_login">로그인 하러 가기</string>
 
     <string name="back">뒤로 가기</string>
     <string name="please_do_login">로그인 후 이용 해 주세요.</string>

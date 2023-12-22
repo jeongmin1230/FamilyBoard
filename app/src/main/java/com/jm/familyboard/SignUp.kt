@@ -1,7 +1,9 @@
 package com.jm.familyboard
 
 import android.content.Context
+import androidx.compose.foundation.background
 import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -23,6 +25,7 @@ import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
@@ -61,13 +64,17 @@ fun SignUpScreen(loginNavController: NavHostController) {
     val signUpNavController = rememberNavController()
     NavHost(signUpNavController, startDestination =  context.getString(R.string.sign_up_nav_route_1)) {
         composable(context.getString(R.string.sign_up_nav_route_1)) {
-            Column {
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .background(Color.White)) {
                 AppBar(screenName) { loginNavController.popBackStack() }
                 EnterInfo(context, signUpNavController)
             }
         }
         composable(context.getString(R.string.sign_up_nav_route_2)) {
-            Column {
+            Column(modifier = Modifier
+                .fillMaxSize()
+                .background(Color(0xFFD1C4E9))) {
                 AppBar(screenName) { signUpNavController.popBackStack() }
                 DoneSignUp(context, loginNavController)
             }
@@ -246,8 +253,23 @@ fun CompleteButton(isEnable: Boolean, text: String, modifier: Modifier, onClickB
 
 @Composable
 fun DoneSignUp(context: Context, loginNavController: NavHostController) {
-    Column {
-        CompleteButton(isEnable = true, text = stringResource(id = R.string.sign_up_complete), modifier = Modifier) {
+    Column(modifier = Modifier.fillMaxSize()) {
+        Column(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.Center,
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Text(
+                text = stringResource(id = R.string.sign_up_complete),
+                style = MaterialTheme.typography.titleLarge.copy(color = Color.White, textAlign = TextAlign.Center),
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        CompleteButton(isEnable = true,
+            text = stringResource(id = R.string.go_to_login),
+            modifier = Modifier
+                .padding(all = 10.dp)
+                .fillMaxWidth()) {
             loginNavController.navigate(context.getString(R.string.first))
         }
     }

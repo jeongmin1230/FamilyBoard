@@ -150,9 +150,7 @@ fun rolesRadioButton(): String {
     )
     var selectedOption by remember { mutableStateOf(rolesString[0]) }
 
-    Row(
-        modifier = Modifier.padding(end = 4.dp),
-    ) {
+    Row{
         rolesString.forEach { role ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
@@ -165,7 +163,7 @@ fun rolesRadioButton(): String {
                 Text(
                     text = role,
                     style = MaterialTheme.typography.bodyMedium,
-                    modifier = Modifier.padding(start = 8.dp)
+                    modifier = Modifier.padding(start = 4.dp, end = 8.dp)
                 )
             }
         }

@@ -99,11 +99,16 @@ fun GetAnnouncement(context: Context, announcementNavController: NavHostControll
         }
     }
 
-    announcements.forEach { announcement ->
-        EachLayout(announcement.title, announcement.date) {
-            announcementNavController.navigate("${context.getString(R.string.announcement_nav_route_2)}/${announcement.no}")
+    if(announcements.isEmpty()) {
+        Text(text = "등록 된 공지 사항이 없습니다.기")
+    } else {
+        announcements.forEach { announcement ->
+            EachLayout(announcement.title, announcement.date) {
+                announcementNavController.navigate("${context.getString(R.string.announcement_nav_route_2)}/${announcement.no}")
+            }
         }
     }
+
 }
 
 @Composable
