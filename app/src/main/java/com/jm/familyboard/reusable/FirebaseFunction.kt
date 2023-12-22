@@ -12,7 +12,7 @@ import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.R
 
 fun checkEmailDuplicate(email: String, emailTest: MutableState<Int>) {
-    val userReference = FirebaseDatabase.getInstance().reference.child("email")
+    val userReference = FirebaseDatabase.getInstance().reference.child("user/email")
     userReference.orderByKey().equalTo(email)
         .addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(dataSnapshot: DataSnapshot) {
@@ -28,20 +28,44 @@ fun checkEmailDuplicate(email: String, emailTest: MutableState<Int>) {
         })
 }
 
-fun checkGroupName(groupName: String, isDuplicate: MutableState<Int>) {
-    val groupNameReference = FirebaseDatabase.getInstance().reference.child("group_name")
-    groupNameReference.orderByKey().equalTo(groupName)
-        .addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val groupNameDuplicate = snapshot.exists()
-                if(groupName.isNotEmpty()) isDuplicate.value = -1
-                if(groupNameDuplicate) isDuplicate.value = 1
-                else isDuplicate.value = 2
+fun checkInvitationCode(invitationCodeTest: MutableState<Int>, invitationCodeValue: String, groupNameValue: MutableState<String>) {
+    val invitationCodeRef = FirebaseDatabase.getInstance().reference.child("user/real_user_group_name")
+    val valueEventListener = object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            for(childSnapshot in snapshot.children) {
+                if(childSnapshot.value == invitationCodeValue) {
+                    invitationCodeTest.value = 2
+                    groupNameValue.value = childSnapshot.key.toString()
+                    println("groupName : ${groupNameValue.value}")
+                    break
+                }
+                else invitationCodeTest.value = 1
             }
+        }
 
-            override fun onCancelled(error: DatabaseError) {
+        override fun onCancelled(error: DatabaseError) {
+        }
+    }
+    invitationCodeRef.addValueEventListener(valueEventListener)
+}
+
+fun checkGroupName(groupNameTest: MutableState<Int>, groupName: String){
+    val groupNameRef = FirebaseDatabase.getInstance().reference.child("user/real_user_group_name")
+    val valueEventListener = object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            for(childSnapshot in snapshot.children) {
+                if(groupName == childSnapshot.key) {
+                    groupNameTest.value = 1
+                    break
+                }
+                else groupNameTest.value = 2
             }
-        })
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+        }
+    }
+    groupNameRef.addValueEventListener(valueEventListener)
 }
 
 fun generateDB(path: String, groupName: String, email: String, name: String, roles: String) {
@@ -53,22 +77,23 @@ fun generateDB(path: String, groupName: String, email: String, name: String, rol
 
 }
 
-private fun createDatabase(groupName: String, email: String, name: String, roles: String) {
+private fun createDatabase(groupNameValue: MutableState<String>, email: String, name: String, roles: String) {
+    println(groupNameValue.value)
     val uid = FirebaseAuth.getInstance().currentUser?.uid
-    val emailRef = FirebaseDatabase.getInstance().getReference("email")
-    val groupNameRef = FirebaseDatabase.getInstance().getReference("group_name")
+    val emailRef = FirebaseDatabase.getInstance().getReference("user/email")
+    val groupNameRef = FirebaseDatabase.getInstance().getReference("user/real_user_group_name")
     emailRef.child(email.replace("@", "_").replace(".", "_")).setValue("email")
-    groupNameRef.child(groupName).setValue(groupName)
-    generateDB("user/$uid", groupName, email, name, roles)
-    generateDB("$groupName/composition/$uid", groupName, email, name, roles)
+    groupNameRef.child(groupNameValue.value).child("code").setValue(generateInvitationCode())//.setValue(generateInvitationCode())
+    generateDB("user/real_user/$uid", groupNameValue.value, email, name, roles)
+    generateDB("service/${groupNameValue.value}/composition/$uid", groupNameValue.value, email, name, roles)
 }
 
-fun signUp(context: Context, groupName: String, name: String, roles: String, email: String, password: String, signUpNavController: NavHostController) {
+fun signUp(context: Context, groupNameValue: MutableState<String>, name: String, roles: String, email: String, password: String, signUpNavController: NavHostController) {
     val auth = FirebaseAuth.getInstance()
     auth.createUserWithEmailAndPassword(email.trim(), password.trim())
         .addOnCompleteListener { task ->
             if(task.isSuccessful) {
-                createDatabase(groupName, email, name, roles)
+                createDatabase(groupNameValue, email, name, roles)
                 signUpNavController.navigate(context.getString(R.string.sign_up_nav_route_2))
             } else {
                 println(task.exception)

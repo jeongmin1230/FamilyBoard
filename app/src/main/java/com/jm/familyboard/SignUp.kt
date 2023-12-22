@@ -2,9 +2,11 @@ package com.jm.familyboard
 
 import android.content.Context
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -50,6 +52,7 @@ import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
 import com.jm.familyboard.reusable.WhatMean
 import com.jm.familyboard.reusable.checkEmailDuplicate
 import com.jm.familyboard.reusable.checkGroupName
+import com.jm.familyboard.reusable.checkInvitationCode
 import com.jm.familyboard.reusable.isEmailValid
 import com.jm.familyboard.reusable.rolesRadioButton
 import com.jm.familyboard.reusable.signUp
@@ -92,12 +95,20 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
     val emailTest = remember { mutableIntStateOf(0) }
     val isEmailTFFocused = remember { mutableStateOf(false) }
     val passwordValue = remember { mutableStateOf("") }
-    val passwordBoolean = remember { mutableStateOf(false) }
     val passwordConfirmValue = remember { mutableStateOf("") }
-    val passwordConfirmBoolean = remember { mutableStateOf(false) }
 
-    val groupNameValue = remember { mutableStateOf("") }
+    val yes = remember { mutableStateOf(true) }
+    val no = remember { mutableStateOf(false) }
+
+    val invitationCodeTest = remember { mutableIntStateOf(0) }
+    val invitationCodeValue = remember { mutableStateOf("") }
+    val invitationCodeEnabled = remember { mutableStateOf(true) }
+    val groupNameThroughCode = remember { mutableStateOf("") }
+    val isInvitationCodeTFFocussed = remember { mutableStateOf(false) }
+
     val groupNameTest = remember { mutableIntStateOf(0) }
+    val groupNameValue = remember { mutableStateOf("") }
+    val groupNameEnabled = remember { mutableStateOf(true) }
     val isGroupNameTFFocused = remember { mutableStateOf(false) }
 
     val rolesValue = remember { mutableStateOf("") }
@@ -114,7 +125,6 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 mean = stringResource(id = R.string.sign_up_name),
                 tfValue = nameValue,
                 keyboardOptions = textFieldKeyboard(ImeAction.Next, KeyboardType.Text),
-                isCorrect = nameBoolean,
                 visualTransformation = VisualTransformation.None
             ) {}
             if(!isEmailTFFocused.value && emailValue.value.trim().isNotEmpty()) {
@@ -138,7 +148,6 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 supportingText = { if(!isEmailTFFocused.value) {
                         when(emailTest.intValue) {
-                            1 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_essential_text), correct = false) }
                             2 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_invalid), correct = false) }
                             3 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid_but_duplicate), correct = false)}
                             4 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid), correct = true) }
@@ -154,44 +163,85 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 mean = stringResource(id = R.string.sign_up_password),
                 tfValue = passwordValue,
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
-                isCorrect = passwordBoolean,
                 visualTransformation = PasswordVisualTransformation('*'),
             ) { NewPasswordSupportingText(passwordValue.value)}
             EnterInfoColumn(
                 mean = stringResource(id = R.string.sign_up_confirm_password),
                 tfValue = passwordConfirmValue,
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
-                isCorrect = passwordConfirmBoolean,
                 visualTransformation = PasswordVisualTransformation('*'),
             ) { ConfirmPasswordSupportingText(passwordValue.value, passwordConfirmValue.value)}
-            if(!isGroupNameTFFocused.value && groupNameValue.value.trim().isNotEmpty()) {
-                LaunchedEffect(this) {
-                    checkGroupName(groupNameValue.value, groupNameTest)
-                }
+            Type(yes, no) {
+                invitationCodeValue.value = ""
+                invitationCodeTest.intValue = 0
+                groupNameValue.value = ""
+                groupNameTest.intValue = 0
             }
-            WhatMean(mean = stringResource(id = R.string.sign_up_group_name), essential = true)
-            TextField(
-                value = groupNameValue.value,
-                onValueChange = { groupNameValue.value = it},
-                textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-                placeholder = { TextFieldPlaceholderOrSupporting(true, "${stringResource(id = R.string.sign_up_group_name)} ${stringResource(id = R.string.sign_up_placeholder)}",true) },
-                visualTransformation = VisualTransformation.None,
-                modifier = Modifier
-                    .onFocusChanged { isGroupNameTFFocused.value = it.isFocused }
-                    .fillMaxSize(),
-                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
-                supportingText = {
-                    if(!isGroupNameTFFocused.value) {
-                        when(groupNameTest.intValue) {
-                            -1 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_essential_text), correct = false) }
-                            1 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_group_name_duplicate), correct = false) }
-                            2 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_group_name_not_duplicate), correct = true) }
-                        }
+            if(yes.value) {
+                if(!isInvitationCodeTFFocussed.value && invitationCodeValue.value.isNotEmpty()) {
+                    LaunchedEffect(this) {
+                        checkInvitationCode(invitationCodeTest, invitationCodeValue.value, groupNameThroughCode)
                     }
-                },
-                singleLine = true,
-                colors = textFieldColors(Color.Blue.copy(0.2f))
-            )
+                }
+                if(invitationCodeTest.intValue == 2) {
+                    invitationCodeEnabled.value = false
+                }
+                TextField(
+                    value = invitationCodeValue.value,
+                    onValueChange = { invitationCodeValue.value = it},
+                    textStyle = MaterialTheme.typography.bodyMedium.copy(if(invitationCodeTest.intValue != 2) Color.Black else Color.DarkGray.copy(0.5f)),
+                    enabled = invitationCodeEnabled.value,
+                    placeholder = { TextFieldPlaceholderOrSupporting(true, "${stringResource(id = R.string.sign_up_invite_code)} ${stringResource(id = R.string.sign_up_placeholder)}",true) },
+                    visualTransformation = VisualTransformation.None,
+                    modifier = Modifier
+                        .onFocusChanged { isInvitationCodeTFFocussed.value = it.isFocused }
+                        .fillMaxSize(),
+                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
+                    supportingText = {
+                        if(!isInvitationCodeTFFocussed.value && invitationCodeValue.value.isNotEmpty()) {
+                            when(invitationCodeTest.intValue) {
+                                1 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_not_exist_invite_code), correct = false) }
+                                2 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_exist_invite_code), correct = true) }
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    colors = textFieldColors(Color.Blue.copy(0.2f))
+                )
+            }
+            else {
+                if(!isGroupNameTFFocused.value && groupNameValue.value.isNotEmpty()) {
+                    LaunchedEffect(this) {
+                        checkGroupName(groupNameTest, groupNameValue.value)
+                    }
+                }
+                if(groupNameTest.intValue == 2) {
+                    groupNameEnabled.value = false
+                }
+                TextField(
+                    value = groupNameValue.value,
+                    onValueChange = { groupNameValue.value = it},
+                    textStyle = MaterialTheme.typography.bodyMedium.copy((if(groupNameTest.intValue != 2) Color.Black else Color.DarkGray.copy(0.5f))),
+                    enabled = groupNameEnabled.value,
+                    placeholder = { TextFieldPlaceholderOrSupporting(true, "${stringResource(id = R.string.sign_up_group_name)} ${stringResource(id = R.string.sign_up_placeholder)}",true) },
+                    visualTransformation = VisualTransformation.None,
+                    modifier = Modifier
+                        .onFocusChanged { isGroupNameTFFocused.value = it.isFocused }
+                        .fillMaxSize(),
+                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
+                    supportingText = {
+                        if(!isGroupNameTFFocused.value && groupNameValue.value.isNotEmpty()) {
+                            when(groupNameTest.intValue) {
+                                1 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_group_name_duplicate), correct = false) }
+                                2 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_group_name_not_duplicate), correct = true) }
+                            }
+                        }
+                    },
+                    singleLine = true,
+                    colors = textFieldColors(Color.Blue.copy(0.2f))
+                )
+            }
+            Spacer(modifier = Modifier.height(14.dp))
             rolesValue.value.ifEmpty { rolesBoolean.value = !rolesBoolean.value }
             WhatMean(mean = stringResource(id = R.string.sign_up_roles), essential = true)
             rolesValue.value = rolesRadioButton()
@@ -201,20 +251,21 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 && emailTest.intValue == 4
                 && passwordValue.value.trim().isNotEmpty()
                 && passwordConfirmValue.value.trim().isNotEmpty()
-                && groupNameValue.value.trim().isNotEmpty()
-                && groupNameTest.intValue == 2
-                && rolesValue.value.trim().isNotEmpty()
                 && (passwordValue.value == passwordConfirmValue.value)
+                && rolesValue.value.trim().isNotEmpty()
+
+        println("through code ${groupNameThroughCode.value}")
+        println("just ${groupNameValue.value}")
 
         CompleteButton(isEnable = condition, text = stringResource(id = R.string.sign_up), modifier = Modifier.fillMaxWidth()) {
-            signUp(context, groupNameValue.value, nameValue.value, rolesValue.value, emailValue.value, passwordValue.value, signUpNavController)
+            signUp(context, if(invitationCodeValue.value.isNotEmpty()) groupNameThroughCode else groupNameValue, nameValue.value, rolesValue.value, emailValue.value, passwordValue.value, signUpNavController)
         }
     }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EnterInfoColumn(mean: String, tfValue: MutableState<String>, keyboardOptions: KeyboardOptions, isCorrect: MutableState<Boolean>, visualTransformation: VisualTransformation, supportingText: @Composable () -> Unit) {
+fun EnterInfoColumn(mean: String, tfValue: MutableState<String>, keyboardOptions: KeyboardOptions, visualTransformation: VisualTransformation, supportingText: @Composable () -> Unit) {
     Column(modifier = Modifier
         .padding(bottom = 14.dp)
         .fillMaxSize()) {
@@ -231,6 +282,38 @@ fun EnterInfoColumn(mean: String, tfValue: MutableState<String>, keyboardOptions
             supportingText = { supportingText() },
             singleLine = true,
             colors = textFieldColors(Color.Blue.copy(0.2f))
+        )
+    }
+}
+
+@Composable
+fun Type(yes: MutableState<Boolean>, no: MutableState<Boolean>, click: () -> Unit) {
+    Row(modifier = Modifier
+        .padding(start = 10.dp, bottom = 10.dp)
+        .clickable { click() }) {
+        Text(
+            text = stringResource(id = R.string.sign_up_yes_invite_code),
+            style = MaterialTheme.typography.bodySmall.copy(if(yes.value) Color.Black else Color.LightGray),
+            modifier = Modifier
+                .padding(end = 4.dp)
+                .clickable {
+                    yes.value = true
+                    no.value = false
+                }
+        )
+        Text(
+            text = stringResource(id = R.string.sign_up_no_invite_code),
+            style = MaterialTheme.typography.bodySmall.copy(if(no.value)Color.Black else Color.LightGray),
+            modifier = Modifier
+                .padding(start = 4.dp)
+                .clickable {
+                    yes.value = false
+                    no.value = true
+                }
+        )
+        Text(
+            text = stringResource(id = R.string.sign_up_essential),
+            style = MaterialTheme.typography.bodySmall.copy(Color.Red)
         )
     }
 }

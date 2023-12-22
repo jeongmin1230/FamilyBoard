@@ -33,9 +33,15 @@
     <string name="sign_up_confirm_password_equal">비밀번호 일치</string>
     <string name="sign_up_confirm_password_not_equal">비밀번호 불일치</string>
 
+    <string name="sign_up_yes_invite_code">초대 코드 있음</string>
+    <string name="sign_up_no_invite_code">초대 코드 없음</string>
+    <string name="sign_up_invite_code">초대 코드</string>
+    <string name="sign_up_exist_invite_code">일치하는 초대 코드를 발견 했습니다. 이 코드로 가입합니다.</string>
+    <string name="sign_up_not_exist_invite_code">일치하는 코드가 없습니다. 다시 확인 해 주세요.</string>
+
     <string name="sign_up_group_name">가족 그룹명</string>
-    <string name="sign_up_group_name_not_duplicate">중복되지 않는 그룹명</string>
-    <string name="sign_up_group_name_duplicate">그룹명은 중복되지 않아야 합니다.</string>
+    <string name="sign_up_group_name_not_duplicate">중복되지 않는 그룹명 입니다. 이 그룹명으로 가입합니다. </string>
+    <string name="sign_up_group_name_duplicate">그룹명은 중복되지 않아야 합니다. 이미 가입한 구성원이 있다면 구성원을 통해 초대 코드로 가입 해 주세요.</string>
 
     <string name="sign_up_roles">가족 내 역할</string>
     <string name="sign_up_mother">어머니</string>

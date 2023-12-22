@@ -34,3 +34,8 @@ fun ConfirmPasswordSupportingText(newPw: String, confirmPw: String) {
 fun checkPasswordFormat(password: String): Boolean {
     return password.matches("^(?=.*[0-9])(?=.*[a-z])(?=.*[!@#\$%^&*]).{8,20}\$".toRegex())
 }
+
+fun generateInvitationCode(): String {
+    val charset = ('a'..'z') + ('A'..'Z') + ('0'..'9')
+    return List(8) {charset.random()}.joinToString("")
+}

@@ -67,7 +67,7 @@ fun GetAnnouncement(context: Context, announcementNavController: NavHostControll
     var announcements by remember { mutableStateOf(emptyList<Announcement>()) }
 
     val database = FirebaseDatabase.getInstance()
-    val announcementReference = database.getReference("${User.groupName}/announcement")
+    val announcementReference = database.getReference("service/${User.groupName}/announcement")
 
     DisposableEffect(announcementReference) {
         val valueEventListener = object : ValueEventListener {
