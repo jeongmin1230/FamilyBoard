@@ -46,17 +46,18 @@ fun GetFamilyInfo(context: Context) {
     DisposableEffect(compositionRef) {
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val announcementList = mutableListOf<FamilyInfo>()
+                val infoList = mutableListOf<FamilyInfo>()
 
                 for (childSnapshot in snapshot.children) {
+                    val email = childSnapshot.child(context.getString(R.string.database_email)).getValue(String::class.java) ?: ""
                     val name = childSnapshot.child(context.getString(R.string.database_name)).getValue(String::class.java) ?: ""
                     val roles = childSnapshot.child(context.getString(R.string.database_roles)).getValue(String::class.java) ?: ""
 
-                    val familyInfo = FamilyInfo(name, roles)
-                    announcementList.add(familyInfo)
+                    val familyInfo = FamilyInfo(email, name, roles)
+                    infoList.add(familyInfo)
                 }
 
-                familyInfoList = announcementList
+                familyInfoList = infoList
             }
 
             override fun onCancelled(error: DatabaseError) {
@@ -72,11 +73,11 @@ fun GetFamilyInfo(context: Context) {
     }
 
     familyInfoList.forEach { info ->
-        EachLayout(bigString = info.name, smallString = info.roles) {}
+        EachLayout(bigString = info.name, smallString = if(info.email == User.email) stringResource(id = R.string.me) else info.roles) {}
     }
 }
 
-data class FamilyInfo(val name: String, val roles: String)
+data class FamilyInfo(val email: String, val name: String, val roles: String)
 
 @Preview(showSystemUi = true)
 @Composable

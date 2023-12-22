@@ -241,7 +241,6 @@ private fun getUserData(activity: Activity, uid: String, password: String, navCo
     val userNameRef = userGroupNameComposition.child("name")
     val userGroupNameRef = userGroupNameComposition.child("group_name")
     val userRolesRef = userGroupNameComposition.child("roles")
-
     userEmailRef.addListenerForSingleValueEvent(object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             val email = snapshot.getValue(String::class.java)

@@ -42,7 +42,6 @@
     <string name="sign_up_father">아버지</string>
     <string name="sign_up_children">자식</string>
     <string name="sign_up_etc">기타</string>
-    <string name="sign_up_route">가입 경로</string>
     <string name="sign_up_nav_route_2">sign_up_success</string>
     <string name="sign_up_complete">로그인 하러 가기</string>
 
@@ -66,11 +65,13 @@
     <string name="database_content">content</string>
     <string name="database_date">date</string>
 
+    <string name="database_email">email</string>
     <string name="database_name">name</string>
     <string name="database_roles">roles</string>
 
 
     <string name="family_information">가족 정보</string>
+    <string name="me">본인</string>
 
     <string name="my_information">내 정보</string>
     <string name="my_name">이름</string>

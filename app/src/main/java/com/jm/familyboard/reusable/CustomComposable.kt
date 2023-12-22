@@ -51,7 +51,6 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 
-
 @Composable
 fun Loading(loading: MutableState<Boolean>) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading))
@@ -85,7 +84,7 @@ fun AppBar(screenName: String, onClickBack: () -> Unit) {
                     indication = null
                 ) { onClickBack() }
                 .padding(horizontal = 10.dp)
-            )
+        )
         Text(screenName)
     }
 }
@@ -110,7 +109,8 @@ fun EachMainMenuLayout(text: String, animation: Int, bgColor: Color, route: Stri
         }
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyLarge.copy(Color.Black)
+            style = MaterialTheme.typography.titleLarge.copy(color = Color.Black, fontWeight = FontWeight.W400),
+            modifier = Modifier.weight(0.2f)
         )
     }
 }
@@ -157,7 +157,7 @@ fun rolesRadioButton(): String {
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable(interactionSource = MutableInteractionSource(), indication = null) { selectedOption = role }
-                ) {
+            ) {
                 RadioButton(
                     selected = (role == selectedOption),
                     onClick = null
