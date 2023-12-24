@@ -1,9 +1,7 @@
 package com.jm.familyboard.reusable
 
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -12,6 +10,7 @@ import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxHeight
+import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
@@ -22,6 +21,7 @@ import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
@@ -40,6 +40,7 @@ import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
@@ -70,7 +71,7 @@ fun Loading(loading: MutableState<Boolean>) {
 }
 
 @Composable
-fun AppBar(screenName: String, onClickBack: () -> Unit) {
+fun AppBar(screenName: String, imageButtonSource: Int?, imageFunction: () -> Unit, onClickBack: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.height(48.dp)
@@ -83,9 +84,32 @@ fun AppBar(screenName: String, onClickBack: () -> Unit) {
                     interactionSource = MutableInteractionSource(),
                     indication = null
                 ) { onClickBack() }
-                .padding(horizontal = 10.dp)
+                .padding(start = 10.dp)
         )
-        Text(screenName)
+        if(screenName != stringResource(id = R.string.sign_up)) {
+            Text(
+                text = screenName,
+                modifier = Modifier
+                    .padding(start = 10.dp)
+                    .weight(1f)
+            )
+            imageButtonSource?.let { ImageVector.vectorResource(it) }?.let {
+                Image(
+                    imageVector = it,
+                    contentDescription = screenName,
+                    modifier = Modifier
+                        .padding(end = 10.dp)
+                        .clickable { imageFunction() }
+                )
+            }
+/*            Text(
+                text = imageButtonName,
+                modifier = Modifier
+                    .padding(end = 10.dp)
+                    .clickable { imageFunction() }
+            )*/
+        }
+
     }
 }
 
@@ -115,13 +139,56 @@ fun EachMainMenuLayout(text: String, animation: Int, bgColor: Color, route: Stri
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EachLayout(bigString: String, smallString: String, onClick: () -> Unit) {
+fun EnterInfoSingleColumn(essential: Boolean, mean: String, tfValue: MutableState<String>, keyboardOptions: KeyboardOptions, visualTransformation: VisualTransformation, modifier: Modifier, supportingText: @Composable () -> Unit) {
+    Column(modifier = modifier) {
+        WhatMean(mean = mean, essential = essential)
+        TextField(
+            value = tfValue.value,
+            onValueChange = { tfValue.value = it},
+            textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+            placeholder = {},
+            interactionSource = MutableInteractionSource(),
+            visualTransformation = visualTransformation,
+            modifier = Modifier.fillMaxSize(),
+            keyboardOptions = keyboardOptions,
+            supportingText = { supportingText() },
+            singleLine = true,
+            colors = textFieldColors(Color.Blue.copy(0.2f))
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EnterInfoMultiColumn(mean: String, tfValue: MutableState<String>, keyboardOptions: KeyboardOptions, visualTransformation: VisualTransformation, modifier: Modifier) {
+    Column(modifier = Modifier
+        .padding(bottom = 14.dp)
+        .fillMaxSize()) {
+        WhatMean(mean = mean, essential = false)
+        TextField(
+            value = tfValue.value,
+            onValueChange = { tfValue.value = it},
+            textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+            placeholder = {},
+            interactionSource = MutableInteractionSource(),
+            visualTransformation = visualTransformation,
+            modifier = modifier,
+            keyboardOptions = keyboardOptions,
+            colors = textFieldColors(Color.Blue.copy(0.2f))
+        )
+    }
+}
+
+
+@Composable
+fun EachLayout(bgColor: Color, bigString: String, smallString: String, onClick: () -> Unit) {
     Column(modifier = Modifier
         .fillMaxWidth()
         .padding(all = 10.dp)
         .clickable { onClick() }
-        .border(BorderStroke(1.dp, Color.LightGray))) {
+        .background(bgColor)) {
         Text(
             text = bigString,
             style = MaterialTheme.typography.bodyLarge.copy(Color.Black),
@@ -141,17 +208,11 @@ fun EachLayout(bigString: String, smallString: String, onClick: () -> Unit) {
 }
 
 @Composable
-fun rolesRadioButton(): String {
-    val rolesString = listOf(
-        stringResource(id = R.string.sign_up_father),
-        stringResource(id = R.string.sign_up_mother),
-        stringResource(id = R.string.sign_up_children),
-        stringResource(id = R.string.sign_up_etc)
-    )
-    var selectedOption by remember { mutableStateOf(rolesString[0]) }
+fun selectRadioButton(string: List<String>): String {
+    var selectedOption by remember { mutableStateOf(string[0]) }
 
     Row{
-        rolesString.forEach { role ->
+        string.forEach { role ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.clickable(interactionSource = MutableInteractionSource(), indication = null) { selectedOption = role }
@@ -172,7 +233,7 @@ fun rolesRadioButton(): String {
 }
 
 @Composable
-fun ConfirmDialog(onDismiss: () -> Unit, content: String, confirmAction: () -> Unit, dismissAction: () -> Unit) {
+fun ConfirmDialog(onDismiss: () -> Unit, content: String, confirmAction: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         text = {
@@ -191,7 +252,7 @@ fun ConfirmDialog(onDismiss: () -> Unit, content: String, confirmAction: () -> U
         dismissButton = {
             Text(text = stringResource(id = R.string.not),
                 style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
-                modifier = Modifier.clickable { dismissAction() })
+                modifier = Modifier.clickable { onDismiss() })
         },
         properties = DialogProperties(usePlatformDefaultWidth = false),
         modifier = Modifier.padding(horizontal = 10.dp)
@@ -262,5 +323,5 @@ fun EachLayoutPreview() {
 @Preview
 @Composable
 fun ConfirmDialogPreview() {
-    ConfirmDialog({}, "content", {}, {})
+    ConfirmDialog({}, "content", {})
 }

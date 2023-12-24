@@ -236,7 +236,8 @@ private fun loginUser(activity: Activity, navController: NavHostController, emai
 }
 
 private fun getUserData(activity: Activity, uid: String, password: String, navController: NavHostController, loading: MutableState<Boolean>) {
-    val userGroupNameComposition = FirebaseDatabase.getInstance().getReference("user/$uid")
+    User.uid = uid
+    val userGroupNameComposition = FirebaseDatabase.getInstance().getReference("user/real_user/$uid")
     val userEmailRef = userGroupNameComposition.child("email")
     val userNameRef = userGroupNameComposition.child("name")
     val userGroupNameRef = userGroupNameComposition.child("group_name")

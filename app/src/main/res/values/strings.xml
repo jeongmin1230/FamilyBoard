@@ -5,6 +5,11 @@
 
     <string name="first">first</string>
 
+    <string name="app_bar_function1">공지사항 등록</string>
+    <string name="app_bar_function2">대표 설정</string>
+    <string name="app_bar_function3">정보 수정</string>
+    <string name="app_bar_function4">질문 등록</string>
+
     <string name="title_activity_login">Login</string>
     <string name="login">로그인</string>
 
@@ -33,6 +38,7 @@
     <string name="sign_up_confirm_password_equal">비밀번호 일치</string>
     <string name="sign_up_confirm_password_not_equal">비밀번호 불일치</string>
 
+    <string name="sign_up_method">가입 방법</string>
     <string name="sign_up_yes_invite_code">초대 코드 있음</string>
     <string name="sign_up_no_invite_code">초대 코드 없음</string>
     <string name="sign_up_invite_code">초대 코드</string>
@@ -58,9 +64,12 @@
     <string name="main">메인 화면</string>
 
     <string name="announcement">공지 사항</string>
+    <string name="register_notice">공지 사항 등록</string>
+    <string name="announcement_date_format">yyyy년 MM월 dd일</string>
 
     <string name="announcement_nav_route_1">announcement_list</string>
     <string name="announcement_nav_route_2">announcement_detail</string>
+    <string name="announcement_nav_route_3">announcement_register</string>
 
     <string name="no">글 번호</string>
     <string name="title">제목</string>
@@ -71,20 +80,31 @@
     <string name="database_title">title</string>
     <string name="database_content">content</string>
     <string name="database_date">date</string>
+    <string name="database_registrant">registrant</string>
 
     <string name="database_email">email</string>
     <string name="database_name">name</string>
     <string name="database_roles">roles</string>
 
+    <string name="selection">선택</string>
 
     <string name="family_information">가족 정보</string>
+    <string name="family_nav_route_1">family_list</string>
+    <string name="family_nav_route_2">family_representative</string>
+    <string name="family_representative">representative</string>
+    <string name="please_set_representative">가족 대표를 설정 해 주세요.</string>
+    <string name="representative_selection_confirm">가족 대표로 설정하겠습니까?\n설정 후에는 가족 대표만 다른 대표로 변경 할 수 있습니다.</string>
     <string name="me">본인</string>
 
     <string name="my_information">내 정보</string>
+    <string name="my_information_nav_route_1">show_information</string>
+    <string name="my_information_nav_route_2">edit_information</string>
     <string name="my_name">이름</string>
     <string name="my_email">이메일</string>
     <string name="my_roles">가족 내 역할</string>
     <string name="my_group_name">가족 그룹명</string>
+    <string name="my_invitation_code">초대 코드</string>
+    <string name="copy_my_invitation_code">코드 복사</string>
 
     <string name="logout">로그아웃</string>
     <string name="do_logout">로그아웃 하시겠습니까?</string>
@@ -94,6 +114,8 @@
     <string name="done_withdrawal">이용해 주셔서 감사합니다. 회원 탈퇴 되었습니다.</string>
 
     <string name="q_a">질의응답</string>
+    <string name="q_a_nav_route_1">q_a_list</string>
+    <string name="q_a_nav_route_2">register_q_a</string>
 
     <string name="yes">예</string>
     <string name="not">아니오</string>

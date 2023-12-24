@@ -3,7 +3,6 @@ package com.jm.familyboard
 import android.content.Context
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
@@ -13,7 +12,6 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.Button
 import androidx.compose.material3.ButtonDefaults
@@ -48,13 +46,14 @@ import androidx.navigation.compose.rememberNavController
 import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.NewPasswordSupportingText
 import com.jm.familyboard.reusable.ConfirmPasswordSupportingText
+import com.jm.familyboard.reusable.EnterInfoSingleColumn
 import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
 import com.jm.familyboard.reusable.WhatMean
 import com.jm.familyboard.reusable.checkEmailDuplicate
 import com.jm.familyboard.reusable.checkGroupName
 import com.jm.familyboard.reusable.checkInvitationCode
 import com.jm.familyboard.reusable.isEmailValid
-import com.jm.familyboard.reusable.rolesRadioButton
+import com.jm.familyboard.reusable.selectRadioButton
 import com.jm.familyboard.reusable.signUp
 import com.jm.familyboard.reusable.textFieldColors
 import com.jm.familyboard.reusable.textFieldKeyboard
@@ -70,7 +69,7 @@ fun SignUpScreen(loginNavController: NavHostController) {
             Column(modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)) {
-                AppBar(screenName) { loginNavController.popBackStack() }
+                AppBar(screenName, null, {}) { loginNavController.popBackStack() }
                 EnterInfo(context, signUpNavController)
             }
         }
@@ -78,7 +77,7 @@ fun SignUpScreen(loginNavController: NavHostController) {
             Column(modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFD1C4E9))) {
-                AppBar(screenName) { signUpNavController.popBackStack() }
+                AppBar(screenName, null, {}) { signUpNavController.popBackStack() }
                 DoneSignUp(context, loginNavController)
             }
         }
@@ -121,11 +120,13 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 .padding(horizontal = 10.dp, vertical = 30.dp)
         ) {
             nameBoolean.value = nameValue.value.isNotEmpty()
-            EnterInfoColumn(
+            EnterInfoSingleColumn(
+                essential = true,
                 mean = stringResource(id = R.string.sign_up_name),
                 tfValue = nameValue,
                 keyboardOptions = textFieldKeyboard(ImeAction.Next, KeyboardType.Text),
-                visualTransformation = VisualTransformation.None
+                visualTransformation = VisualTransformation.None,
+                modifier = Modifier.fillMaxWidth()
             ) {}
             if(!isEmailTFFocused.value && emailValue.value.trim().isNotEmpty()) {
                 LaunchedEffect(this) {
@@ -159,32 +160,46 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 colors = textFieldColors(Color.Blue.copy(0.2f))
             )
             Spacer(modifier = Modifier.height(10.dp))
-            EnterInfoColumn(
+            EnterInfoSingleColumn(
+                essential = true,
                 mean = stringResource(id = R.string.sign_up_password),
                 tfValue = passwordValue,
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 visualTransformation = PasswordVisualTransformation('*'),
+                modifier = Modifier.fillMaxWidth()
             ) { NewPasswordSupportingText(passwordValue.value)}
-            EnterInfoColumn(
+            EnterInfoSingleColumn(
+                essential = true,
                 mean = stringResource(id = R.string.sign_up_confirm_password),
                 tfValue = passwordConfirmValue,
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 visualTransformation = PasswordVisualTransformation('*'),
+                modifier = Modifier.fillMaxWidth()
             ) { ConfirmPasswordSupportingText(passwordValue.value, passwordConfirmValue.value)}
+            WhatMean(mean = stringResource(id = R.string.sign_up_method), essential = true)
             Type(yes, no) {
                 invitationCodeValue.value = ""
                 invitationCodeTest.intValue = 0
                 groupNameValue.value = ""
                 groupNameTest.intValue = 0
             }
+            if(invitationCodeTest.intValue == 2) {
+                invitationCodeEnabled.value = false
+                groupNameTest.intValue = 0
+                groupNameEnabled.value = false
+                groupNameValue.value = ""
+            }
+            if(groupNameTest.intValue == 2) {
+                invitationCodeValue.value = ""
+                invitationCodeTest.intValue = 0
+                invitationCodeEnabled.value = false
+                groupNameEnabled.value = false
+            }
             if(yes.value) {
                 if(!isInvitationCodeTFFocussed.value && invitationCodeValue.value.isNotEmpty()) {
                     LaunchedEffect(this) {
                         checkInvitationCode(invitationCodeTest, invitationCodeValue.value, groupNameThroughCode)
                     }
-                }
-                if(invitationCodeTest.intValue == 2) {
-                    invitationCodeEnabled.value = false
                 }
                 TextField(
                     value = invitationCodeValue.value,
@@ -215,9 +230,6 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                         checkGroupName(groupNameTest, groupNameValue.value)
                     }
                 }
-                if(groupNameTest.intValue == 2) {
-                    groupNameEnabled.value = false
-                }
                 TextField(
                     value = groupNameValue.value,
                     onValueChange = { groupNameValue.value = it},
@@ -244,7 +256,9 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
             Spacer(modifier = Modifier.height(14.dp))
             rolesValue.value.ifEmpty { rolesBoolean.value = !rolesBoolean.value }
             WhatMean(mean = stringResource(id = R.string.sign_up_roles), essential = true)
-            rolesValue.value = rolesRadioButton()
+            rolesValue.value = selectRadioButton(
+                mutableListOf(stringResource(id = R.string.sign_up_father), stringResource(id = R.string.sign_up_mother), stringResource(id = R.string.sign_up_children), stringResource(id = R.string.sign_up_etc))
+            )
         }
         val condition = nameValue.value.trim().isNotEmpty()
                 && emailValue.value.trim().isNotEmpty()
@@ -252,37 +266,12 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 && passwordValue.value.trim().isNotEmpty()
                 && passwordConfirmValue.value.trim().isNotEmpty()
                 && (passwordValue.value == passwordConfirmValue.value)
+                && (if(invitationCodeValue.value.isNotEmpty()) invitationCodeTest.intValue == 2 else groupNameTest.intValue == 2)
                 && rolesValue.value.trim().isNotEmpty()
 
-        println("through code ${groupNameThroughCode.value}")
-        println("just ${groupNameValue.value}")
-
-        CompleteButton(isEnable = condition, text = stringResource(id = R.string.sign_up), modifier = Modifier.fillMaxWidth()) {
-            signUp(context, if(invitationCodeValue.value.isNotEmpty()) groupNameThroughCode else groupNameValue, nameValue.value, rolesValue.value, emailValue.value, passwordValue.value, signUpNavController)
+        CompleteButton(isEnable = condition, color = Color.Blue.copy(0.2f), text = stringResource(id = R.string.sign_up), modifier = Modifier.fillMaxWidth()) {
+            signUp(context, groupNameTest, if(invitationCodeValue.value.isNotEmpty()) groupNameThroughCode else groupNameValue, nameValue.value, rolesValue.value, emailValue.value, passwordValue.value, signUpNavController)
         }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun EnterInfoColumn(mean: String, tfValue: MutableState<String>, keyboardOptions: KeyboardOptions, visualTransformation: VisualTransformation, supportingText: @Composable () -> Unit) {
-    Column(modifier = Modifier
-        .padding(bottom = 14.dp)
-        .fillMaxSize()) {
-        WhatMean(mean = mean, essential = true)
-        TextField(
-            value = tfValue.value,
-            onValueChange = { tfValue.value = it},
-            textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-            placeholder = { TextFieldPlaceholderOrSupporting(true, "$mean ${stringResource(id = R.string.sign_up_placeholder)}",true) },
-            interactionSource = MutableInteractionSource(),
-            visualTransformation = visualTransformation,
-            modifier = Modifier.fillMaxSize(),
-            keyboardOptions = keyboardOptions,
-            supportingText = { supportingText() },
-            singleLine = true,
-            colors = textFieldColors(Color.Blue.copy(0.2f))
-        )
     }
 }
 
@@ -311,25 +300,21 @@ fun Type(yes: MutableState<Boolean>, no: MutableState<Boolean>, click: () -> Uni
                     no.value = true
                 }
         )
-        Text(
-            text = stringResource(id = R.string.sign_up_essential),
-            style = MaterialTheme.typography.bodySmall.copy(Color.Red)
-        )
     }
 }
 
 @Composable
-fun CompleteButton(isEnable: Boolean, text: String, modifier: Modifier, onClickButton: () -> Unit) {
+fun CompleteButton(isEnable: Boolean, color: Color, text: String, modifier: Modifier, onClickButton: () -> Unit) {
     Button(
         enabled = isEnable,
-        colors = ButtonDefaults.buttonColors(containerColor = Color.Blue.copy(0.5f), disabledContainerColor = Color.LightGray),
+        colors = ButtonDefaults.buttonColors(containerColor = color, disabledContainerColor = Color.LightGray),
         onClick = onClickButton,
         shape = RectangleShape,
         modifier = modifier.height(48.dp),
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyMedium.copy(color = Color.White, textAlign = TextAlign.Center)
+            style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black, textAlign = TextAlign.Center)
         )
     }
 }
@@ -350,6 +335,7 @@ fun DoneSignUp(context: Context, loginNavController: NavHostController) {
         }
         CompleteButton(isEnable = true,
             text = stringResource(id = R.string.go_to_login),
+            color = Color.Blue.copy(0.2f),
             modifier = Modifier
                 .padding(all = 10.dp)
                 .fillMaxWidth()) {
