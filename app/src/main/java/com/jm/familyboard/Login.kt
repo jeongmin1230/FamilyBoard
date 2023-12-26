@@ -1,11 +1,10 @@
 package com.jm.familyboard
 
 import android.app.Activity
-import android.content.Context
 import android.os.Bundle
-import android.widget.Toast
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
+import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
@@ -42,7 +41,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -53,14 +51,11 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.google.firebase.auth.FirebaseAuth
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.reusable.Loading
+import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.getStoredUserEmail
 import com.jm.familyboard.reusable.getStoredUserPassword
+import com.jm.familyboard.reusable.loginUser
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
 
 class Login : ComponentActivity() {
@@ -92,7 +87,9 @@ fun FirstScreen() {
     NavHost(navController, startDestination = context.getString(R.string.first)) {
         composable(context.getString(R.string.first)) {
             Column(
-                modifier = Modifier.fillMaxSize(),
+                modifier = Modifier
+                    .background(Color.White)
+                    .fillMaxSize(),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 if(userEmail.value.isNotEmpty() && userPassword.value.isNotEmpty()) {
@@ -135,14 +132,14 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
                     progress = progress,
                 )
             }
-
             TextField(
                 value = email.value,
                 singleLine = true,
                 onValueChange = {email.value = it},
+                textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
                 placeholder = {
                     Text(text = stringResource(id = R.string.enter_email),
-                        style = MaterialTheme.typography.bodyMedium)
+                        style = MaterialTheme.typography.bodyMedium.copy(Color.Black))
                 },
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = Color.LightGray,
@@ -163,9 +160,13 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
                 value = password.value,
                 singleLine = true,
                 onValueChange = {password.value = it},
+                textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
                 placeholder = {
-                    Text(text = stringResource(id = R.string.enter_password),
-                        style = MaterialTheme.typography.bodyMedium)
+                    TextComposable(
+                        text = stringResource(id = R.string.enter_password),
+                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray),
+                        modifier = Modifier
+                    )
                 },
                 visualTransformation = PasswordVisualTransformation('*'),
                 colors = TextFieldDefaults.textFieldColors(
@@ -196,7 +197,10 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
                     containerColor = MaterialTheme.colorScheme.primary,
                     disabledContainerColor = Color.LightGray,
                 )) {
-                Text(text = stringResource(id = R.string.login))
+                Text(
+                    text = stringResource(id = R.string.login),
+                    style = MaterialTheme.typography.bodyMedium.copy(if(email.value.isNotEmpty() && password.value.isNotEmpty()) Color.White else Color.Black)
+                    )
             }
             Spacer(modifier = Modifier.height(20.dp))
             Row(verticalAlignment = Alignment.CenterVertically,
@@ -204,10 +208,7 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
                 Text(text = stringResource(id = R.string.sign_up),
                     modifier = Modifier
                         .weight(1f)
-                        .clickable(
-                            interactionSource = MutableInteractionSource(),
-                            indication = null
-                        ) { navController.navigate(context.getString(R.string.title_activity_sign_up)) },
+                        .clickable(interactionSource = MutableInteractionSource(), indication = null) { navController.navigate(context.getString(R.string.title_activity_sign_up)) },
                     style = MaterialTheme.typography.bodyMedium.copy(Color.Black, textAlign = TextAlign.Center))
             }
         }
@@ -215,92 +216,4 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
             Loading(loading)
         }
     }
-}
-
-private fun loginUser(activity: Activity, navController: NavHostController, email: MutableState<String>, password: MutableState<String>, loading: MutableState<Boolean>) {
-    val auth = FirebaseAuth.getInstance()
-    auth.signInWithEmailAndPassword(email.value.trim(), password.value.trim())
-        .addOnCompleteListener(activity) { task ->
-            if (task.isSuccessful) {
-                val uid = auth.currentUser?.uid ?: ""
-                getUserData(activity, uid, password.value.trim(), navController, loading)
-            } else {
-                loading.value = false
-                email.value = ""
-                password.value = ""
-                if(!task.isSuccessful) {
-                    Toast.makeText(activity, activity.getString(R.string.try_again), Toast.LENGTH_SHORT).show()
-                }
-            }
-        }
-}
-
-private fun getUserData(activity: Activity, uid: String, password: String, navController: NavHostController, loading: MutableState<Boolean>) {
-    User.uid = uid
-    val userGroupNameComposition = FirebaseDatabase.getInstance().getReference("user/real_user/$uid")
-    val userEmailRef = userGroupNameComposition.child("email")
-    val userNameRef = userGroupNameComposition.child("name")
-    val userGroupNameRef = userGroupNameComposition.child("group_name")
-    val userRolesRef = userGroupNameComposition.child("roles")
-    userEmailRef.addListenerForSingleValueEvent(object : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            val email = snapshot.getValue(String::class.java)
-            if (email != null) {
-                User.email = email
-                userNameRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                    override fun onDataChange(snapshot: DataSnapshot) {
-                        val name = snapshot.getValue(String::class.java)
-                        if (name != null) {
-                            User.name = name
-                            userGroupNameRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                                override fun onDataChange(snapshot: DataSnapshot) {
-                                    val groupName = snapshot.getValue(String::class.java)
-                                    if(groupName != null) {
-                                        User.groupName = groupName
-                                        userRolesRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                                            override fun onDataChange(snapshot: DataSnapshot) {
-                                                val roles = snapshot.getValue(String::class.java)
-                                                if(roles != null) {
-                                                    User.roles = roles
-                                                    storeUserCredentials(activity, name, email, password, groupName, roles)
-                                                }
-                                            }
-
-                                            override fun onCancelled(error: DatabaseError) {
-                                            }
-                                        })
-                                    }
-                                }
-
-                                override fun onCancelled(error: DatabaseError) {
-                                }
-
-                            })
-                            if (User.email.isNotEmpty() && User.name.isNotEmpty()) {
-                                loading.value = false
-                                navController.navigate((activity as Context).getString(R.string.title_activity_main))
-                            }
-                        }
-                    }
-
-                    override fun onCancelled(error: DatabaseError) {
-                    }
-                })
-            }
-        }
-
-        override fun onCancelled(error: DatabaseError) {
-        }
-    })
-}
-
-private fun storeUserCredentials(activity: Activity, name: String, email: String, password: String, groupName: String, roles: String) {
-    val sharedPreferences = activity.getSharedPreferences("UserCredentials", Context.MODE_PRIVATE)
-    val editor = sharedPreferences.edit()
-    editor.putString("name", name)
-    editor.putString("email", email)
-    editor.putString("password", password)
-    editor.putString("groupName", groupName)
-    editor.putString("roles", roles)
-    editor.apply()
 }

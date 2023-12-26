@@ -3,7 +3,6 @@ package com.jm.familyboard.mainFunction
 import android.annotation.SuppressLint
 import android.content.Context
 import androidx.compose.foundation.background
-import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
@@ -12,9 +11,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.MutableState
@@ -38,7 +35,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -46,9 +42,12 @@ import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.CompleteButton
 import com.jm.familyboard.R
 import com.jm.familyboard.User
+import com.jm.familyboard.reusable.LoadList
 import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.EnterInfoMultiColumn
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
+import com.jm.familyboard.reusable.HowToUseColumn
+import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.textFieldKeyboard
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
 import java.text.SimpleDateFormat
@@ -58,34 +57,32 @@ import java.util.Date
 fun AnnouncementScreen(mainNavController: NavHostController) {
     val screenName = stringResource(R.string.announcement)
     val context = LocalContext.current
-    val appBarImage = R.drawable.ic_announcement
+    val registerTitle = remember { mutableStateOf("") }
+    val registerContent = remember { mutableStateOf("") }
     val currentNavController = rememberNavController()
     NavHost(currentNavController, startDestination = stringResource(R.string.announcement_nav_route_1)) {
         composable(context.getString(R.string.announcement_nav_route_1)) {
             Column(modifier = Modifier
                 .background(Color(0xFFC6DBDA))
                 .fillMaxSize()) {
-                AppBar(screenName, appBarImage, { currentNavController.navigate("announcement_register")}) { mainNavController.popBackStack() }
-                GetAnnouncement(context)
-            }
-        }
-        composable("${context.getString(R.string.announcement_nav_route_2)}/{no}",
-            arguments = listOf(navArgument("no") { type = NavType.IntType })) {
-            val no = it.arguments?.getInt("no") ?: 0
-            Column(modifier = Modifier
-                .background(Color(0xFFC6DBDA))
-                .fillMaxSize()) {
-                AppBar(screenName, appBarImage, {}) { currentNavController.popBackStack() }
-                Detail(context, no)
+                AppBar(true, screenName, R.drawable.ic_announcement, {
+                    registerTitle.value = ""
+                    registerContent.value = ""
+                    currentNavController.navigate("${context.getString(R.string.announcement_nav_route_2)}/false/0")}) { mainNavController.popBackStack() }
+                GetAnnouncement(context, registerTitle, registerContent, currentNavController)
             }
         }
 
-        composable(context.getString(R.string.announcement_nav_route_3)) {
+        composable("${context.getString(R.string.announcement_nav_route_2)}/{edit}/{registerNo}",
+            arguments = listOf(navArgument("edit") { type = NavType.BoolType }, navArgument("registerNo") { type = NavType.IntType })
+        ) {
+            val edit = it.arguments?.getBoolean("edit") ?: false
+            val registerNo = it.arguments?.getInt("registerNo") ?: 0
             Column(modifier = Modifier
                 .background(Color(0xFFC6DBDA))
                 .fillMaxSize()) {
-                AppBar(screenName, null, {}) { currentNavController.popBackStack() }
-                RegisterNotice(context, currentNavController)
+                AppBar(false, screenName, null, {}) { currentNavController.popBackStack() }
+                RegisterNotice(edit, registerNo, context, registerTitle, registerContent, currentNavController)
             }
         }
     }
@@ -93,11 +90,10 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
 
 
 @Composable
-fun GetAnnouncement(context: Context) {
+fun GetAnnouncement(context: Context, editTitle: MutableState<String>, editContent: MutableState<String>, currentNavController: NavHostController) {
     var announcements by remember { mutableStateOf(emptyList<Announcement>()) }
-
     val database = FirebaseDatabase.getInstance()
-    val announcementReference = database.getReference("service/${User.groupName}/announcement")
+    val announcementReference = database.getReference("real/service/${User.groupName}/announcement")
 
     DisposableEffect(announcementReference) {
         val valueEventListener = object : ValueEventListener {
@@ -109,8 +105,11 @@ fun GetAnnouncement(context: Context) {
                     val title = childSnapshot.child(context.getString(R.string.database_title)).getValue(String::class.java) ?: ""
                     val content = childSnapshot.child(context.getString(R.string.database_content)).getValue(String::class.java) ?: ""
                     val date = childSnapshot.child(context.getString(R.string.database_date)).getValue(String::class.java) ?: ""
+                    val writer = childSnapshot.child(context.getString(R.string.database_writer)).getValue(String::class.java) ?: ""
 
-                    val announcement = Announcement(no, title, content, date)
+                    val announcement = Announcement(no, title, content, date, writer)
+                    editTitle.value = title
+                    editContent.value = content
                     announcementList.add(announcement)
                 }
 
@@ -128,165 +127,79 @@ fun GetAnnouncement(context: Context) {
             announcementReference.removeEventListener(valueEventListener)
         }
     }
-    Column(Modifier.fillMaxSize()) {
-        if(announcements.isEmpty()) {
-            Text(text = "등록 된 공지 사항이 없습니다.")
-        } else {
-            Spacer(modifier = Modifier.height(20.dp))
-            announcements.forEach { announcement ->
-                AnnouncementList(announcement.title, announcement.content, announcement.date)
+    HowToUseColumn(stringResource(id = R.string.announcement_information))
+    if(announcements.isEmpty()) {
+        TextComposable(
+            text = "등록 된 공지 사항이 없습니다.",
+            style = MaterialTheme.typography.titleLarge.copy(color = Color.Black),
+            modifier = Modifier
+            )
+    } else {
+        Spacer(modifier = Modifier.height(20.dp))
+        announcements.forEach { announcement ->
+            LoadList(type = 0, false, editTitle, editContent, announcement.title, announcement.content, "", "") {
+                currentNavController.navigate("${context.getString(R.string.announcement_nav_route_2)}/true/${announcement.no}")
             }
         }
-    }
-}
-
-@Composable
-fun AnnouncementList(title: String, detail: String, date: String) {
-    val expanded = remember { mutableStateOf(false) }
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(bottom = 10.dp)
-        .clickable { expanded.value = !expanded.value }
-    ) {
-        Text(
-            text = title,
-            style = MaterialTheme.typography.bodyLarge.copy(Color.Black),
-            modifier = Modifier
-                .padding(start = 6.dp, top = 6.dp)
-                .align(Alignment.Start)
-        )
-        Text(
-            text = date,
-            style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
-            modifier = Modifier
-                .padding(bottom = 10.dp, end = 6.dp)
-                .align(Alignment.End)
-        )
-        if(expanded.value) {
-            Column(modifier = Modifier
-                .fillMaxWidth()
-                .background(Color.Blue.copy(0.2f))) {
-                Text(
-                    text = detail,
-                    style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-                    modifier = Modifier.padding(all = 10.dp)
-                )
-            }
-        }
-        Divider()
-    }
-}
-
-@Composable
-fun Detail(context: Context, no: Int) {
-    val detailTitle = remember { mutableStateOf("") }
-    val detailContent = remember { mutableStateOf("") }
-    val detailDate = remember { mutableStateOf("") }
-    var announcements by remember { mutableStateOf(emptyList<Announcement>()) }
-
-    val database = FirebaseDatabase.getInstance()
-    val announcementReference = database.getReference("service/${User.groupName}/announcement")
-
-    DisposableEffect(announcementReference) {
-        val valueEventListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val announcementList = mutableListOf<Announcement>()
-
-                for (childSnapshot in snapshot.children) {
-                    val currentNo = childSnapshot.child(context.getString(R.string.database_no)).getValue(Int::class.java) ?: 0
-
-                    if (currentNo == no) {
-                        val title = childSnapshot.child(context.getString(R.string.database_title)).getValue(String::class.java) ?: ""
-                        val content = childSnapshot.child(context.getString(R.string.database_content)).getValue(String::class.java) ?: ""
-                        val date = childSnapshot.child(context.getString(R.string.database_date)).getValue(String::class.java) ?: ""
-
-                        detailTitle.value = title
-                        detailContent.value = content
-                        detailDate.value = date
-
-                        val announcement = Announcement(currentNo, title, content, date)
-                        announcementList.add(announcement)
-                    }
-                }
-
-                announcements = announcementList
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-                println(error.message)
-            }
-        }
-
-        announcementReference.addValueEventListener(valueEventListener)
-
-        onDispose {
-            announcementReference.removeEventListener(valueEventListener)
-        }
-    }
-    DetailAndWriteScreen(detailTitle , detailContent, detailDate.value)
-}
-
-@Composable
-fun DetailAndWriteScreen(title: MutableState<String>, content: MutableState<String>, date: String) {
-    Column(Modifier.verticalScroll(rememberScrollState())) {
-        EnterInfoSingleColumn(
-            essential = false,
-            mean = stringResource(R.string.title),
-            tfValue = title,
-            keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
-            visualTransformation = VisualTransformation.None,
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(start = 10.dp, end = 10.dp, bottom = 14.dp)
-        ) {}
-        Spacer(modifier = Modifier.height(6.dp))
-        EnterInfoMultiColumn(
-            mean = stringResource(R.string.content),
-            tfValue = content,
-            keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
-            visualTransformation = VisualTransformation.None,
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .padding(horizontal = 10.dp)
-        )
-        Text(
-            text = "${stringResource(R.string.date)} $date",
-            style = MaterialTheme.typography.bodySmall,
-            modifier = Modifier
-                .align(Alignment.End)
-                .padding(end = 10.dp)
-        )
     }
 }
 
 @SuppressLint("SimpleDateFormat")
 @Composable
-fun RegisterNotice(context: Context, announcementNavController: NavHostController) {
-    val writeTitle = remember { mutableStateOf("") }
-    val writeContent = remember { mutableStateOf("") }
+fun RegisterNotice(edit: Boolean, no: Int, context: Context, editTitle: MutableState<String>, editContent: MutableState<String>, currentNavController: NavHostController) {
+    val newTitle = remember { mutableStateOf("") }
+    val newContent = remember { mutableStateOf("") }
     val writeDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis()))
-    val uid = FirebaseAuth.getInstance().currentUser?.uid
-    val announcementRef = FirebaseDatabase.getInstance().getReference("service/${User.groupName}/announcement")
+    val announcementRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement")
     Column {
         Column(Modifier.weight(1f)) {
-            DetailAndWriteScreen(writeTitle, writeContent, writeDate)
+            Column(Modifier.verticalScroll(rememberScrollState())) {
+                EnterInfoSingleColumn(
+                    essential = false,
+                    mean = stringResource(R.string.title),
+                    tfValue = if(editTitle.value.isNotEmpty()) editTitle else newTitle ,
+                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
+                    visualTransformation = VisualTransformation.None,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(start = 10.dp, end = 10.dp, bottom = 14.dp)
+                ) {}
+                Spacer(modifier = Modifier.height(6.dp))
+                EnterInfoMultiColumn(
+                    mean = stringResource(R.string.content),
+                    tfValue = if(editContent.value.isNotEmpty()) editContent else newContent,
+                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
+                    visualTransformation = VisualTransformation.None,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(200.dp)
+                        .padding(horizontal = 10.dp)
+                )
+                TextComposable(
+                    text = "${stringResource(R.string.date)} $writeDate",
+                    style = MaterialTheme.typography.bodySmall.copy(color = Color.Black),
+                    modifier = Modifier
+                        .align(Alignment.End)
+                        .padding(end = 10.dp)
+                )
+            }
         }
         CompleteButton(
-            isEnable = writeTitle.value.isNotEmpty() && writeContent.value.isNotEmpty(),
+            isEnable = if(!edit) newTitle.value.isNotEmpty() && newContent.value.isNotEmpty() else editTitle.value.isNotEmpty() && editContent.value.isNotEmpty(),
             text = stringResource(id = R.string.register_notice),
             color = Color.Blue.copy(0.2f),
             modifier = Modifier.fillMaxWidth()) {
             announcementRef.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
                     val nextNo = snapshot.childrenCount + 1
-                    val newRef = announcementRef.child("${context.getString(R.string.database_no)}$nextNo")
-                    newRef.child(context.getString(R.string.database_content)).setValue(writeContent.value)
-                    newRef.child(context.getString(R.string.database_date)).setValue(writeDate)
-                    newRef.child(context.getString(R.string.database_no)).setValue(nextNo)
-                    newRef.child(context.getString(R.string.database_registrant)).setValue(uid)
-                    newRef.child(context.getString(R.string.database_title)).setValue(writeTitle.value)
-                    announcementNavController.popBackStack()
+                    val ref = if(edit) announcementRef.child("${context.getString(R.string.database_no)}$no") else announcementRef.child("${context.getString(R.string.database_no)}$nextNo")
+                    ref.child(context.getString(R.string.database_content)).setValue(if(edit) editContent.value else newTitle.value)
+                    ref.child(context.getString(R.string.database_date)).setValue(writeDate)
+                    ref.child(context.getString(R.string.database_no)).setValue(if(edit) no else nextNo)
+                    ref.child(context.getString(R.string.database_registrant)).setValue(User.uid)
+                    ref.child(context.getString(R.string.database_writer)).setValue(User.name)
+                    ref.child(context.getString(R.string.database_title)).setValue(if(edit) editTitle.value else newContent.value)
+                    currentNavController.popBackStack()
                 }
                 override fun onCancelled(error: DatabaseError) {
                 }
@@ -295,7 +208,7 @@ fun RegisterNotice(context: Context, announcementNavController: NavHostControlle
     }
 }
 
-data class Announcement(val no: Int, val title: String, val content: String, val date: String)
+data class Announcement(val no: Int, val title: String, val content: String, val date: String, val writer: String)
 
 @Preview(showSystemUi = true)
 @Composable

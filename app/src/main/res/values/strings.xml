@@ -5,7 +5,7 @@
 
     <string name="first">first</string>
 
-    <string name="app_bar_function1">공지사항 등록</string>
+    <string name="app_bar_function1">공지 사항 등록</string>
     <string name="app_bar_function2">대표 설정</string>
     <string name="app_bar_function3">정보 수정</string>
     <string name="app_bar_function4">질문 등록</string>
@@ -19,34 +19,34 @@
 
     <string name="title_activity_sign_up">SignUp</string>
     <string name="sign_up_nav_route_1">sign_up_enter_info</string>
-    <string name="sign_up">회원가입</string>
+    <string name="sign_up">회원 가입</string>
     <string name="sign_up_essential">*</string>
     <string name="sign_up_essential_text">필수 항목 입니다.</string>
     <string name="sign_up_placeholder">을(를) 입력 해 주세요.</string>
     <string name="sign_up_name">이름</string>
     <string name="sign_up_email">이메일</string>
     <string name="sign_up_email_invalid">이메일 형식이 맞지 않습니다.</string>
-    <string name="sign_up_email_valid_but_duplicate">이메일 형식은 맞으나 중복됩니다.</string>
-    <string name="sign_up_email_duplicate">이메일이 중복됩니다.</string>
-    <string name="sign_up_email_valid">사용할 수 있는 이메일입니다.</string>
+    <string name="sign_up_email_valid_but_duplicate">이메일 형식은 맞으나 중복 됩니다.</string>
+    <string name="sign_up_email_duplicate">이메일이 중복 됩니다.</string>
+    <string name="sign_up_email_valid">사용할 수 있는 이메일 입니다.</string>
 
-    <string name="sign_up_password">비밀번호</string>
-    <string name="sign_up_password_hint">비밀번호는 8~20자의 영어/숫자/특수문자를 각각 1자씩 포함해야 합니다.</string>
-    <string name="sign_up_password_appropriate">사용 가능한 비밀번호</string>
-    <string name="sign_up_password_unsuited">적절하지 않은 비밀번호</string>
-    <string name="sign_up_confirm_password">비밀번호 확인</string>
-    <string name="sign_up_confirm_password_equal">비밀번호 일치</string>
-    <string name="sign_up_confirm_password_not_equal">비밀번호 불일치</string>
+    <string name="sign_up_password">비밀 번호</string>
+    <string name="sign_up_password_hint">비밀 번호는 8~20자의 영어/숫자/특수문자를 각각 1자씩 포함 해야 합니다.</string>
+    <string name="sign_up_password_appropriate">사용 가능한 비밀 번호</string>
+    <string name="sign_up_password_unsuited">적절하지 않은 비밀 번호</string>
+    <string name="sign_up_confirm_password">비밀 번호 확인</string>
+    <string name="sign_up_confirm_password_equal">비밀 번호 일치</string>
+    <string name="sign_up_confirm_password_not_equal">비밀 번호 불일치</string>
 
     <string name="sign_up_method">가입 방법</string>
     <string name="sign_up_yes_invite_code">초대 코드 있음</string>
     <string name="sign_up_no_invite_code">초대 코드 없음</string>
     <string name="sign_up_invite_code">초대 코드</string>
-    <string name="sign_up_exist_invite_code">일치하는 초대 코드를 발견 했습니다. 이 코드로 가입합니다.</string>
-    <string name="sign_up_not_exist_invite_code">일치하는 코드가 없습니다. 다시 확인 해 주세요.</string>
+    <string name="sign_up_exist_invite_code">일치 하는 초대 코드를 발견 했습니다. 이 코드로 가입 합니다.</string>
+    <string name="sign_up_not_exist_invite_code">일치 하는 코드가 없습니다. 다시 확인 해 주세요.</string>
 
     <string name="sign_up_group_name">가족 그룹명</string>
-    <string name="sign_up_group_name_not_duplicate">중복되지 않는 그룹명 입니다. 이 그룹명으로 가입합니다. </string>
+    <string name="sign_up_group_name_not_duplicate">중복 되지 않는 그룹명 입니다. 이 그룹 명으로 가입 합니다. </string>
     <string name="sign_up_group_name_duplicate">그룹명은 중복되지 않아야 합니다. 이미 가입한 구성원이 있다면 구성원을 통해 초대 코드로 가입 해 주세요.</string>
 
     <string name="sign_up_roles">가족 내 역할</string>
@@ -65,11 +65,18 @@
 
     <string name="announcement">공지 사항</string>
     <string name="register_notice">공지 사항 등록</string>
+    <string name="announcement_information">상단 우측 아이콘을 누르면 공지사항을 등록 할 수 있습니다.\n공지를 짧게 누르면 공지 내용, 길게 누르면 수정, 삭제 할 수 있습니다.</string>
     <string name="announcement_date_format">yyyy년 MM월 dd일</string>
 
     <string name="announcement_nav_route_1">announcement_list</string>
-    <string name="announcement_nav_route_2">announcement_detail</string>
-    <string name="announcement_nav_route_3">announcement_register</string>
+    <string name="announcement_nav_route_2">announcement_register</string>
+    <string name="announcement_nav_route_3">announcement_answer</string>
+
+    <string name="edit">수정하기</string>
+    <string name="answer">답변하기</string>
+
+    <string name="q_a_content">질문 내용</string>
+    <string name="q_a_answer_content">답변 내용</string>
 
     <string name="no">글 번호</string>
     <string name="title">제목</string>
@@ -81,14 +88,22 @@
     <string name="database_content">content</string>
     <string name="database_date">date</string>
     <string name="database_registrant">registrant</string>
+    <string name="database_writer">writer</string>
+    <string name="database_uid">uid</string>
 
     <string name="database_email">email</string>
     <string name="database_name">name</string>
     <string name="database_roles">roles</string>
 
     <string name="selection">선택</string>
-
+표
     <string name="family_information">가족 정보</string>
+    <string name="representative">가족 대표</string>
+    <string name="set_representative">가족 대표 설정</string>
+    <string name="family_information_no_representative">가족 대표가 설정 돼 있지 않습니다.\n우측 상단의 아이콘을 눌러 대표를 설정 해 주세요.</string>
+    <string name="family_information_representative_exist_but_not_me">가족 대표만 대표를 재설정 할 수 있습니다.\n가족 대표에게 변경 요청 해 주세요.</string>
+    <string name="family_information_representative_is_me">가족 대표를 변경 할 수 있습니다.\n우측 상단 아이콘을 눌러 변경 해 주세요.</string>
+
     <string name="family_nav_route_1">family_list</string>
     <string name="family_nav_route_2">family_representative</string>
     <string name="family_representative">representative</string>
@@ -96,6 +111,7 @@
     <string name="representative_selection_confirm">가족 대표로 설정하겠습니까?\n설정 후에는 가족 대표만 다른 대표로 변경 할 수 있습니다.</string>
     <string name="me">본인</string>
 
+    <string name="my_information_information">상단 우측 아이콘을 누르면 이름, 역할, 비밀번호를 수정 할 수 있습니다.\n가족 대표의 경우 초대 코드를 터치하면 복사 할 수 있습니다.</string>
     <string name="my_information">내 정보</string>
     <string name="my_information_nav_route_1">show_information</string>
     <string name="my_information_nav_route_2">edit_information</string>
@@ -113,9 +129,23 @@
     <string name="do_withdrawal">정말 탈퇴 하시겠습니까?\n해당 아이디로 작성한 모든 글이 삭제됩니다.</string>
     <string name="done_withdrawal">이용해 주셔서 감사합니다. 회원 탈퇴 되었습니다.</string>
 
+    <string name="q_a_information">상단 우측의 아이콘을 누르면 질문을 등록 할 수 있습니다.\n질문 목록을 짧게 누르면 질문 내용과 답변\n길게 누르면 답변 등록을 할 수 있습니다.</string>
     <string name="q_a">질의응답</string>
+    <string name="q_a_list">질의응답 목록</string>
     <string name="q_a_nav_route_1">q_a_list</string>
+    <string name="q_a_register">질문 등록</string>
     <string name="q_a_nav_route_2">register_q_a</string>
+    <string name="q_a_answer">답변 등록</string>
+    <string name="q_a_nav_route_3">answer_q_a</string>
+
+    <string name="database_flag">flag</string>
+    <string name="database_question">question</string>
+    <string name="database_question_title">questionTitle</string>
+    <string name="database_question_title_mean">질문 제목</string>
+    <string name="database_question_content">questionContent</string>
+    <string name="database_question_content_mean">질문 내용</string>
+    <string name="database_answer_content">answerContent</string>
+    <string name="database_answer_mean">답변</string>
 
     <string name="yes">예</string>
     <string name="not">아니오</string>

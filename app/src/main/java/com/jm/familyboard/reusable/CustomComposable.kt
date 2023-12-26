@@ -1,8 +1,10 @@
 package com.jm.familyboard.reusable
 
+import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
+import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Box
@@ -17,6 +19,7 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
@@ -71,7 +74,16 @@ fun Loading(loading: MutableState<Boolean>) {
 }
 
 @Composable
-fun AppBar(screenName: String, imageButtonSource: Int?, imageFunction: () -> Unit, onClickBack: () -> Unit) {
+fun TextComposable(text: String, style: androidx.compose.ui.text.TextStyle, modifier: Modifier) {
+    Text(
+        text = text,
+        style = style,
+        modifier = modifier
+    )
+}
+
+@Composable
+fun AppBar(enabled: Boolean, screenName: String, imageButtonSource: Int?, imageFunction: () -> Unit, onClickBack: () -> Unit) {
     Row(
         verticalAlignment = Alignment.CenterVertically,
         modifier = Modifier.height(48.dp)
@@ -87,8 +99,9 @@ fun AppBar(screenName: String, imageButtonSource: Int?, imageFunction: () -> Uni
                 .padding(start = 10.dp)
         )
         if(screenName != stringResource(id = R.string.sign_up)) {
-            Text(
+            TextComposable(
                 text = screenName,
+                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
                 modifier = Modifier
                     .padding(start = 10.dp)
                     .weight(1f)
@@ -99,17 +112,10 @@ fun AppBar(screenName: String, imageButtonSource: Int?, imageFunction: () -> Uni
                     contentDescription = screenName,
                     modifier = Modifier
                         .padding(end = 10.dp)
-                        .clickable { imageFunction() }
+                        .clickable(enabled = enabled) { imageFunction() }
                 )
             }
-/*            Text(
-                text = imageButtonName,
-                modifier = Modifier
-                    .padding(end = 10.dp)
-                    .clickable { imageFunction() }
-            )*/
         }
-
     }
 }
 
@@ -131,11 +137,101 @@ fun EachMainMenuLayout(text: String, animation: Int, bgColor: Color, route: Stri
                 composition = composition,
                 progress = progress)
         }
-        Text(
+        TextComposable(
             text = text,
             style = MaterialTheme.typography.titleLarge.copy(color = Color.Black, fontWeight = FontWeight.W400),
             modifier = Modifier.weight(0.2f)
         )
+    }
+}
+
+@Composable
+fun HowToUseColumn(text: String) {
+    Column(modifier = Modifier
+        .background(Color.White)
+        .padding(all = 10.dp)
+        .fillMaxWidth()) {
+        TextComposable(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
+            modifier = Modifier
+        )
+    }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun LoadList(type: Int, flag: Boolean, editTitle: MutableState<String>, editContent: MutableState<String>, title: String, content: String, writer: String, answer: String, clickAction: () -> Unit) {
+    val expanded = remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
+    Column(modifier = Modifier
+        .fillMaxWidth()
+        .padding(bottom = 10.dp)
+        .combinedClickable(
+            onClick = { expanded.value = !expanded.value },
+            onLongClick = {
+                // 작성자 uid 가 현재 uid 와 일치 할 경우 에만 수정 가능
+                editTitle.value = title
+                editContent.value = content
+                showDialog = true
+            }
+        )
+    ) {
+        TextComposable(
+            text = stringResource(id = R.string.database_question_title_mean),
+            style = MaterialTheme.typography.labelSmall.copy(color = Color.LightGray),
+            modifier = Modifier
+                .padding(start = 6.dp, top = 6.dp)
+                .align(Alignment.Start)
+        )
+        TextComposable(
+            text = title,
+            style = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
+            modifier = Modifier
+                .padding(start = 6.dp)
+                .align(Alignment.Start)
+        )
+        TextComposable(
+            text = writer,
+            style = MaterialTheme.typography.bodyMedium.copy(color = Color.DarkGray),
+            modifier = Modifier
+                .padding(bottom = 10.dp, end = 6.dp)
+                .align(Alignment.End)
+        )
+        if(expanded.value) {
+            Column(modifier = Modifier
+                .fillMaxWidth()) {
+                TextComposable(
+                    text = "[${stringResource(id = R.string.database_question_content_mean)}]",
+                    style = MaterialTheme.typography.labelSmall.copy(color = Color.Black),
+                    modifier = Modifier.padding(all = 10.dp)
+                )
+                TextComposable(
+                    text = content,
+                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black),
+                    modifier = Modifier.padding(all = 10.dp)
+                )
+            }
+            if(flag) {
+                Column(modifier = Modifier
+                    .fillMaxWidth()) {
+                    TextComposable(
+                        text = "[${stringResource(id = R.string.database_answer_mean)}]",
+                        style = MaterialTheme.typography.labelSmall.copy(color = Color.Black),
+                        modifier = Modifier.padding(all = 10.dp)
+                    )
+                    TextComposable(
+                        text = answer,
+                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black),
+                        modifier = Modifier.padding(all = 10.dp)
+                    )
+                }
+            }
+        }
+        if(showDialog) {
+            ConfirmDialog(type = type, onDismiss = { showDialog = false }, content = title) { clickAction() }
+        }
+        Divider()
     }
 }
 
@@ -148,7 +244,7 @@ fun EnterInfoSingleColumn(essential: Boolean, mean: String, tfValue: MutableStat
             value = tfValue.value,
             onValueChange = { tfValue.value = it},
             textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-            placeholder = {},
+            placeholder = { TextFieldPlaceholderOrSupporting(isPlaceholder = true, text = "$mean ${stringResource(id = R.string.sign_up_placeholder)}", correct = true)},
             interactionSource = MutableInteractionSource(),
             visualTransformation = visualTransformation,
             modifier = Modifier.fillMaxSize(),
@@ -158,6 +254,7 @@ fun EnterInfoSingleColumn(essential: Boolean, mean: String, tfValue: MutableStat
             colors = textFieldColors(Color.Blue.copy(0.2f))
         )
     }
+    Spacer(modifier = Modifier.height(10.dp))
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -171,38 +268,12 @@ fun EnterInfoMultiColumn(mean: String, tfValue: MutableState<String>, keyboardOp
             value = tfValue.value,
             onValueChange = { tfValue.value = it},
             textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-            placeholder = {},
+            placeholder = { TextFieldPlaceholderOrSupporting(isPlaceholder = true, text = "$mean ${stringResource(id = R.string.sign_up_placeholder)}", correct = true)},
             interactionSource = MutableInteractionSource(),
             visualTransformation = visualTransformation,
             modifier = modifier,
             keyboardOptions = keyboardOptions,
             colors = textFieldColors(Color.Blue.copy(0.2f))
-        )
-    }
-}
-
-
-@Composable
-fun EachLayout(bgColor: Color, bigString: String, smallString: String, onClick: () -> Unit) {
-    Column(modifier = Modifier
-        .fillMaxWidth()
-        .padding(all = 10.dp)
-        .clickable { onClick() }
-        .background(bgColor)) {
-        Text(
-            text = bigString,
-            style = MaterialTheme.typography.bodyLarge.copy(Color.Black),
-            modifier = Modifier
-                .padding(start = 6.dp, top = 6.dp)
-                .align(Alignment.Start)
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = smallString,
-            style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
-            modifier = Modifier
-                .padding(bottom = 6.dp, end = 6.dp)
-                .align(Alignment.End)
         )
     }
 }
@@ -221,7 +292,7 @@ fun selectRadioButton(string: List<String>): String {
                     selected = (role == selectedOption),
                     onClick = null
                 )
-                Text(
+                TextComposable(
                     text = role,
                     style = MaterialTheme.typography.bodyMedium,
                     modifier = Modifier.padding(start = 4.dp, end = 8.dp)
@@ -232,27 +303,62 @@ fun selectRadioButton(string: List<String>): String {
     return selectedOption
 }
 
+
+/**
+ * announcement 화면 이고 수정 = 0
+ * announcement 화면 아니고 수정 = 1
+ * * 그 외 = 2
+ * */
+
 @Composable
-fun ConfirmDialog(onDismiss: () -> Unit, content: String, confirmAction: () -> Unit) {
+fun ConfirmDialog(type: Int, onDismiss: () -> Unit, content: String, confirmAction: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         text = {
             Column(modifier = Modifier.fillMaxWidth()) {
-                Text(text = content)
+                TextComposable(
+                    text = content,
+                    style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                    modifier = Modifier
+                )
             }
         },
         containerColor = Color.White,
         confirmButton = {
-            Text(text = stringResource(id = R.string.yes),
-                style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .clickable { confirmAction() })
+            when(type){
+                0 -> {
+                    TextComposable(
+                        text = stringResource(id = R.string.edit),
+                        style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
+                        modifier = Modifier
+                            .padding(start = 10.dp)
+                            .fillMaxWidth()
+                            .clickable { confirmAction() })
+                }
+                1 -> {
+                    TextComposable(
+                        text = stringResource(id = R.string.answer),
+                        style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
+                        modifier = Modifier
+                            .padding(start = 10.dp)
+                            .fillMaxWidth()
+                            .clickable { confirmAction() })
+                }
+                2 -> {
+                    TextComposable(text = stringResource(id = R.string.yes),
+                        style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
+                        modifier = Modifier
+                            .padding(start = 10.dp)
+                            .clickable { confirmAction() })
+                }
+            }
         },
         dismissButton = {
-            Text(text = stringResource(id = R.string.not),
-                style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
-                modifier = Modifier.clickable { onDismiss() })
+            if(type == 2) {
+                TextComposable(text = stringResource(id = R.string.not),
+                    style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
+                    modifier = Modifier.clickable { onDismiss() })
+            }
         },
         properties = DialogProperties(usePlatformDefaultWidth = false),
         modifier = Modifier.padding(horizontal = 10.dp)
@@ -262,15 +368,16 @@ fun ConfirmDialog(onDismiss: () -> Unit, content: String, confirmAction: () -> U
 @Composable
 fun WhatMean(mean: String, essential: Boolean) {
     Row {
-        Text(
+        TextComposable(
             text = mean,
             style = MaterialTheme.typography.bodySmall.copy(Color.DarkGray),
             modifier = Modifier.padding(start = 10.dp, bottom = 10.dp)
         )
         if(essential) {
-            Text(
+            TextComposable(
                 text = stringResource(id = R.string.sign_up_essential),
-                style = MaterialTheme.typography.bodySmall.copy(Color.Red)
+                style = MaterialTheme.typography.bodySmall.copy(Color.Red),
+                modifier = Modifier
             )
         }
     }
@@ -279,17 +386,15 @@ fun WhatMean(mean: String, essential: Boolean) {
 @Composable
 fun TextFieldPlaceholderOrSupporting(isPlaceholder: Boolean, text: String, correct: Boolean) {
     if (isPlaceholder) {
-        Text(
+        TextComposable(
             text = text,
-            style = MaterialTheme.typography.bodySmall.copy(Color.DarkGray)
+            style = MaterialTheme.typography.bodySmall.copy(color = Color.DarkGray),
+            modifier = Modifier
         )
     } else {
-        Text(
+        TextComposable(
             text = text,
-            style = MaterialTheme.typography.bodySmall.copy(
-                color = if (correct) Color.Blue else Color.Red,
-                fontWeight = FontWeight.W400
-            ),
+            style = MaterialTheme.typography.bodySmall.copy(color = if (correct) Color.Blue else Color.Red, fontWeight = FontWeight.W400),
             modifier = Modifier.padding(top = 2.dp)
         )
     }
@@ -318,10 +423,4 @@ fun textFieldKeyboard(imeAction: ImeAction, keyboardType: KeyboardType): Keyboar
 @Composable
 fun EachLayoutPreview() {
     EachMainMenuLayout("메세지", R.raw.announcement, Color(0XFFC6DBDA), "", rememberNavController())
-}
-
-@Preview
-@Composable
-fun ConfirmDialogPreview() {
-    ConfirmDialog({}, "content", {})
 }

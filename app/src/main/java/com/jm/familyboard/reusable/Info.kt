@@ -1,5 +1,6 @@
 package com.jm.familyboard.reusable
 
+import android.app.Activity
 import android.content.Context
 
 fun getStoredUserEmail(context: Context): String {
@@ -10,6 +11,17 @@ fun getStoredUserEmail(context: Context): String {
 fun getStoredUserPassword(context: Context): String {
     val sharedPreferences = context.getSharedPreferences("UserCredentials", Context.MODE_PRIVATE)
     return sharedPreferences.getString("password", "") ?: ""
+}
+
+fun storeUserCredentials(activity: Activity, name: String, email: String, password: String, groupName: String, roles: String) {
+    val sharedPreferences = activity.getSharedPreferences("UserCredentials", Context.MODE_PRIVATE)
+    val editor = sharedPreferences.edit()
+    editor.putString("name", name)
+    editor.putString("email", email)
+    editor.putString("password", password)
+    editor.putString("groupName", groupName)
+    editor.putString("roles", roles)
+    editor.apply()
 }
 
 fun removeUserCredentials(context: Context) {

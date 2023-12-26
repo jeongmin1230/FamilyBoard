@@ -6,10 +6,8 @@ import com.jm.familyboard.R
 
 fun isEmailValid(email: String): Int {
     val emailPattern = Regex("[a-zA-Z\\d._-]+@[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}")
-    return if(email.matches(emailPattern)) 3 else if(!email.matches(emailPattern)) 2 else 1
+    return if(email.matches(emailPattern)) 3 else if(!email.matches(emailPattern)) 4 else 5
 }
-
-
 
 @Composable
 fun NewPasswordSupportingText(newPassword: String) {

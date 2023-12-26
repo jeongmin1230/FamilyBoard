@@ -49,8 +49,7 @@ import com.jm.familyboard.reusable.ConfirmPasswordSupportingText
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
 import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
 import com.jm.familyboard.reusable.WhatMean
-import com.jm.familyboard.reusable.checkEmailDuplicate
-import com.jm.familyboard.reusable.checkGroupName
+import com.jm.familyboard.reusable.checkDuplicate
 import com.jm.familyboard.reusable.checkInvitationCode
 import com.jm.familyboard.reusable.isEmailValid
 import com.jm.familyboard.reusable.selectRadioButton
@@ -69,7 +68,7 @@ fun SignUpScreen(loginNavController: NavHostController) {
             Column(modifier = Modifier
                 .fillMaxSize()
                 .background(Color.White)) {
-                AppBar(screenName, null, {}) { loginNavController.popBackStack() }
+                AppBar(false, screenName, null, {}) { loginNavController.popBackStack() }
                 EnterInfo(context, signUpNavController)
             }
         }
@@ -77,7 +76,7 @@ fun SignUpScreen(loginNavController: NavHostController) {
             Column(modifier = Modifier
                 .fillMaxSize()
                 .background(Color(0xFFD1C4E9))) {
-                AppBar(screenName, null, {}) { signUpNavController.popBackStack() }
+                AppBar(false, screenName, null, {}) { signUpNavController.popBackStack() }
                 DoneSignUp(context, loginNavController)
             }
         }
@@ -91,7 +90,7 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
     val nameBoolean = remember { mutableStateOf(true) }
 
     val emailValue = remember { mutableStateOf("") }
-    val emailTest = remember { mutableIntStateOf(0) }
+    val emailTest = remember { mutableIntStateOf(5) }
     val isEmailTFFocused = remember { mutableStateOf(false) }
     val passwordValue = remember { mutableStateOf("") }
     val passwordConfirmValue = remember { mutableStateOf("") }
@@ -131,8 +130,8 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
             if(!isEmailTFFocused.value && emailValue.value.trim().isNotEmpty()) {
                 LaunchedEffect(this) {
                     emailTest.intValue = isEmailValid(emailValue.value)
-                    if(emailTest.intValue >= 3) {
-                        checkEmailDuplicate(emailValue.value.replace("@", "_").replace(".", "_"), emailTest)
+                    if(emailTest.intValue <= 3) {
+                        checkDuplicate("real/user/email", emailValue.value.replace("@", "_").replace(".", "_"), emailTest, 2, 1)
                     }
                 }
             }
@@ -149,9 +148,9 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 supportingText = { if(!isEmailTFFocused.value) {
                         when(emailTest.intValue) {
-                            2 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_invalid), correct = false) }
-                            3 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid_but_duplicate), correct = false)}
-                            4 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid), correct = true) }
+                            1 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid), correct = true) }
+                            2, 3 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid_but_duplicate), correct = false)}
+                            4 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_invalid), correct = false) }
                         }
                     }
 
@@ -198,6 +197,7 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
             if(yes.value) {
                 if(!isInvitationCodeTFFocussed.value && invitationCodeValue.value.isNotEmpty()) {
                     LaunchedEffect(this) {
+//                        checkDuplicate("user/real_user_group_name", invitationCodeValue.value, invitationCodeTest, 2, 1)
                         checkInvitationCode(invitationCodeTest, invitationCodeValue.value, groupNameThroughCode)
                     }
                 }
@@ -227,7 +227,7 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
             else {
                 if(!isGroupNameTFFocused.value && groupNameValue.value.isNotEmpty()) {
                     LaunchedEffect(this) {
-                        checkGroupName(groupNameTest, groupNameValue.value)
+                        checkDuplicate("real/user/real_user_group_name", groupNameValue.value, groupNameTest, 1, 2)
                     }
                 }
                 TextField(
@@ -262,7 +262,7 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
         }
         val condition = nameValue.value.trim().isNotEmpty()
                 && emailValue.value.trim().isNotEmpty()
-                && emailTest.intValue == 4
+                && emailTest.intValue == 1
                 && passwordValue.value.trim().isNotEmpty()
                 && passwordConfirmValue.value.trim().isNotEmpty()
                 && (passwordValue.value == passwordConfirmValue.value)
@@ -314,7 +314,7 @@ fun CompleteButton(isEnable: Boolean, color: Color, text: String, modifier: Modi
     ) {
         Text(
             text = text,
-            style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black, textAlign = TextAlign.Center)
+            style = MaterialTheme.typography.bodyMedium.copy(color = if(!isEnable) Color.White else Color.Black, textAlign = TextAlign.Center)
         )
     }
 }

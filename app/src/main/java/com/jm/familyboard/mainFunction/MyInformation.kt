@@ -27,7 +27,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -43,8 +42,10 @@ import com.jm.familyboard.R
 import com.jm.familyboard.User
 import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.ConfirmDialog
+import com.jm.familyboard.reusable.HowToUseColumn
 import com.jm.familyboard.reusable.InvitationCode
 import com.jm.familyboard.reusable.LookUpRepresentativeUid
+import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.removeUserCredentials
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
 
@@ -59,8 +60,7 @@ fun MyInformationScreen(mainNavController: NavHostController) {
             Column(modifier = Modifier
                 .background(Color(0XFFECD5E3))
                 .fillMaxSize()) {
-                AppBar(screenName,appBarImage, { currentNavController.navigate(context.getString(R.string.my_information_nav_route_2))}) { mainNavController.popBackStack() }
-                Spacer(modifier = Modifier.height(30.dp))
+                AppBar(true, screenName,appBarImage, { currentNavController.navigate(context.getString(R.string.my_information_nav_route_2))}) { mainNavController.popBackStack() }
                 InfoLayout()
             }
         }
@@ -68,7 +68,7 @@ fun MyInformationScreen(mainNavController: NavHostController) {
             Column(modifier = Modifier
                 .background(Color(0XFFECD5E3))
                 .fillMaxSize()) {
-                AppBar(screenName, null, {}) { currentNavController.popBackStack() }
+                AppBar(false, screenName, null, {}) { currentNavController.popBackStack() }
             }
         }
     }
@@ -79,19 +79,17 @@ fun InfoLayout() {
     val representativeUid = remember { mutableStateOf("") }
     LookUpRepresentativeUid(representativeUid)
     val context = LocalContext.current
-    val roles = if(User.roles == "mother") "어머니" else if(User.roles == "father") "아버지" else if(User.roles == "children") "자식" else if(User.roles == "pat") "반려 동물" else "기타"
     val invitationCode = remember { mutableStateOf("") }
     InvitationCode(invitationCode)
     val confirmLogout = remember { mutableStateOf(false) }
     val confirmWithdrawal = remember { mutableStateOf(false) }
     invitationCode.value = invitationCode.value.ifEmpty { stringResource(id = R.string.please_set_representative) }
-
-    println(FirebaseAuth.getInstance().uid)
+    HowToUseColumn(text = stringResource(id = R.string.my_information_information))
     Column(Modifier.verticalScroll(rememberScrollState())) {
         RowLayout(click = false, mean = stringResource(id = R.string.my_name), info = User.name)
         RowLayout(click = false, mean = stringResource(id = R.string.my_email), info = User.email)
         RowLayout(click = false, mean = stringResource(id = R.string.my_group_name), info = User.groupName)
-        RowLayout(click = false, mean = stringResource(id = R.string.my_roles), info = roles)
+        RowLayout(click = false, mean = stringResource(id = R.string.my_roles), info = User.roles)
         if(User.uid == representativeUid.value) {
             RowLayout(click = invitationCode.value.isNotEmpty(), mean = stringResource(id = R.string.my_invitation_code), info = invitationCode.value)
         }
@@ -110,6 +108,7 @@ fun InfoLayout() {
 @Composable
 fun Logout(context: Context, confirmLogout: MutableState<Boolean>) {
     ConfirmDialog(
+        type = 2,
         onDismiss = { confirmLogout.value = false },
         content = stringResource(id = R.string.do_logout),
         confirmAction = {
@@ -127,13 +126,14 @@ fun Logout(context: Context, confirmLogout: MutableState<Boolean>) {
 @Composable
 fun Withdrawal(context: Context, confirmWithdrawal: MutableState<Boolean>) {
     ConfirmDialog(
+        type = 2,
         onDismiss = { confirmWithdrawal.value = false },
         content = stringResource(id = R.string.do_withdrawal),
         confirmAction = {
             val currentUser = FirebaseAuth.getInstance().currentUser
             val uid = FirebaseAuth.getInstance().uid
-            val deleteMember = FirebaseDatabase.getInstance().getReference("service/${User.groupName}/composition").child("$uid")
-            val userUid = FirebaseDatabase.getInstance().getReference("user/real_user/$uid")
+            val deleteMember = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/composition").child("$uid")
+            val userUid = FirebaseDatabase.getInstance().getReference("real/user/real_user/$uid")
             deleteMember.removeValue()
             userUid.removeValue()
                 .addOnSuccessListener {
@@ -162,12 +162,12 @@ fun RowLayout(click: Boolean, mean: String, info: String) {
     Row(modifier = Modifier
         .padding(all = 10.dp)
         .fillMaxSize()) {
-        Text(
+        TextComposable(
             text = mean,
             style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
             modifier = Modifier.padding(end = 20.dp)
         )
-        Text(
+        TextComposable(
             text = info,
             style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
             modifier = Modifier

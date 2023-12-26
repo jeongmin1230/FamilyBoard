@@ -16,14 +16,13 @@ import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -41,16 +40,17 @@ import com.jm.familyboard.CompleteButton
 import com.jm.familyboard.R
 import com.jm.familyboard.User
 import com.jm.familyboard.reusable.AppBar
-import com.jm.familyboard.reusable.ConfirmDialog
-import com.jm.familyboard.reusable.EachLayout
+import com.jm.familyboard.reusable.HowToUseColumn
 import com.jm.familyboard.reusable.LookUpRepresentativeUid
-import com.jm.familyboard.reusable.signUp
+import com.jm.familyboard.reusable.TextComposable
+import com.jm.familyboard.reusable.checkDuplicate
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
 
 @Composable
 fun FamilyInformationScreen(mainNavController: NavHostController) {
-    val screenName = stringResource(id = R.string.family_information)
     val uid = remember { mutableStateOf("") }
+    val existRepresentative = remember { mutableIntStateOf(0) }
+    checkDuplicate("real/service/${User.groupName}", "representative", existRepresentative, 1, 2)
     LookUpRepresentativeUid(uid)
     val context = LocalContext.current
     val currentNavController = rememberNavController()
@@ -59,7 +59,7 @@ fun FamilyInformationScreen(mainNavController: NavHostController) {
             Column(modifier = Modifier
                 .background(Color(0XFFFEE1E8))
                 .fillMaxSize()) {
-                AppBar(screenName, R.drawable.ic_family_information, { currentNavController.navigate(context.getString(R.string.family_nav_route_2)) }) { mainNavController.popBackStack() }
+                AppBar(existRepresentative.intValue == 1 || User.uid != uid.value, stringResource(id = R.string.family_information), R.drawable.ic_family_information, { currentNavController.navigate(context.getString(R.string.family_nav_route_2)) }) { mainNavController.popBackStack() }
                 GetFamilyInfo(context)
             }
         }
@@ -67,7 +67,7 @@ fun FamilyInformationScreen(mainNavController: NavHostController) {
             Column(modifier = Modifier
                 .background(Color(0XFFFEE1E8))
                 .fillMaxSize()) {
-                AppBar(screenName, null, {}) { currentNavController.popBackStack() }
+                AppBar(false, stringResource(id = R.string.set_representative), null, {}) { currentNavController.popBackStack() }
                 RepresentativeSelection(currentNavController, context)
             }
         }
@@ -76,10 +76,13 @@ fun FamilyInformationScreen(mainNavController: NavHostController) {
 
 @Composable
 fun GetFamilyInfo(context: Context) {
+    val representativeUid = remember { mutableStateOf("") }
+    LookUpRepresentativeUid(representativeUid)
+    val isExist = remember { mutableIntStateOf(0) }
     var familyInfoList by remember { mutableStateOf(emptyList<FamilyInfo>()) }
 
     val database = FirebaseDatabase.getInstance()
-    val compositionRef = database.getReference("service/${User.groupName}/composition")
+    val compositionRef = database.getReference("real/service/${User.groupName}/composition")
 
     DisposableEffect(compositionRef) {
         val valueEventListener = object : ValueEventListener {
@@ -107,9 +110,36 @@ fun GetFamilyInfo(context: Context) {
             compositionRef.removeEventListener(valueEventListener)
         }
     }
-
-    familyInfoList.forEach { info ->
-        EachLayout(Color(0xFFD59DAB), info.name, if(info.email == User.email) stringResource(id = R.string.me) else info.roles) {}
+    checkDuplicate("real/service/${User.groupName}", "representative", isExist, 1, 2)
+    Column {
+        val information = if(User.uid == representativeUid.value) stringResource(id = R.string.family_information_representative_is_me)
+        else if(isExist.intValue == 1 && User.uid != representativeUid.value) stringResource(id = R.string.family_information_representative_exist_but_not_me)
+        else stringResource(id = R.string.family_information_no_representative)
+        HowToUseColumn(text = information)
+        Spacer(modifier = Modifier.height(10.dp))
+        familyInfoList.forEach { info ->
+            Column(modifier = Modifier
+                .fillMaxWidth()
+                .padding(all = 10.dp)
+                .background(Color(0xFFD59DAB))
+            ) {
+                TextComposable(
+                    text = if(info.uid == representativeUid.value) "${info.name} (${stringResource(id = R.string.representative)})" else info.name,
+                    style = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
+                    modifier = Modifier
+                        .padding(start = 6.dp, top = 6.dp)
+                        .align(Alignment.Start)
+                )
+                Spacer(modifier = Modifier.height(6.dp))
+                TextComposable(
+                    text = if(info.email == User.email) stringResource(id = R.string.me) else info.roles,
+                    style = MaterialTheme.typography.bodyMedium.copy(color = Color.DarkGray),
+                    modifier = Modifier
+                        .padding(bottom = 6.dp, end = 6.dp)
+                        .align(Alignment.End)
+                )
+            }
+        }
     }
 }
 
@@ -121,7 +151,7 @@ fun RepresentativeSelection(currentNavController: NavHostController, context: Co
     var familyInfoList by remember { mutableStateOf(emptyList<FamilyInfo>()) }
 
     val database = FirebaseDatabase.getInstance()
-    val compositionRef = database.getReference("service/${User.groupName}/composition")
+    val compositionRef = database.getReference("real/service/${User.groupName}/composition")
 
     DisposableEffect(compositionRef) {
         val valueEventListener = object : ValueEventListener {
@@ -176,9 +206,10 @@ fun RepresentativeSelection(currentNavController: NavHostController, context: Co
                         onClick = null,
                         modifier = Modifier.padding(end = 4.dp)
                     )
-                    Text(
+                    TextComposable(
                         text = info.name,
                         style = MaterialTheme.typography.bodyMedium.copy(if(index % 2 == 0) Color.White else Color.Black),
+                        modifier = Modifier
                     )
                 }
             }
@@ -188,7 +219,7 @@ fun RepresentativeSelection(currentNavController: NavHostController, context: Co
             color = Color(0xFFD59DAB),
             text = stringResource(id = R.string.selection),
             modifier = Modifier.fillMaxWidth()) {
-            val uidReference = FirebaseDatabase.getInstance().getReference("service/${User.groupName}")
+            val uidReference = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}")
             uidReference.child("representative").setValue(uid.value)
             currentNavController.popBackStack()
         }
