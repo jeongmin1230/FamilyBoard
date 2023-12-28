@@ -19,12 +19,12 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.jm.familyboard.mainFunction.AnnouncementScreen
-import com.jm.familyboard.mainFunction.FamilyInformationScreen
-import com.jm.familyboard.mainFunction.MyInformationScreen
-import com.jm.familyboard.mainFunction.Q_AScreen
+import com.jm.familyboard.mainFunction.announcement.AnnouncementScreen
+import com.jm.familyboard.mainFunction.familyInformation.FamilyInformationScreen
+import com.jm.familyboard.mainFunction.myInformation.MyInformationScreen
 import com.jm.familyboard.reusable.EachMainMenuLayout
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
+import com.jm.familyboard.mainFunction.qa.Q_AScreen
 
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {

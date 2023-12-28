@@ -1,8 +1,11 @@
 package com.jm.familyboard.reusable
 
+import android.widget.Toast
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -38,6 +41,7 @@ import androidx.compose.ui.Modifier
 import com.jm.familyboard.R
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
@@ -54,6 +58,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.jm.familyboard.User
 
 @Composable
 fun Loading(loading: MutableState<Boolean>) {
@@ -159,9 +164,104 @@ fun HowToUseColumn(text: String) {
     }
 }
 
+/**
+ * screenType = 0 -> announcement
+ * screenType = 1 -> Q_A
+ * */
+
+// screenType 0 에서 flag 는 사용 x
+// screenType 1 에서 flag 는 답변 유무에 사용
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun LoadList(type: Int, flag: Boolean, editTitle: MutableState<String>, editContent: MutableState<String>, title: String, content: String, writer: String, answer: String, clickAction: () -> Unit) {
+fun AllList(screenType: Int, flag: Boolean, modify: MutableState<Boolean>, title: String, content: String, date: String, writer: String, answer: String, writerUid: String, clickAction: () -> Unit) {
+    val context = LocalContext.current
+    val showDetail = remember { mutableStateOf(false) }
+    var showDialog by remember { mutableStateOf(false) }
+    Column(
+        modifier = Modifier
+            .combinedClickable(
+                onClick = { showDetail.value = !showDetail.value },
+                onLongClick = {
+                    when(screenType) {
+                        0 -> {
+                            showDialog = if(User.uid == writerUid) { true }
+                            else {
+                                Toast.makeText(context, context.getString(R.string.announcement_edit_warning), Toast.LENGTH_SHORT).show()
+                                false
+                            }
+                        }
+                        1 -> { // q a 화면 이면 답변 있으면 더 추가 못 한다고 토스트
+                        }
+                    }
+                }
+            )
+    ) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(all = 10.dp)) {
+            TextComposable(
+                text = date,
+                style = MaterialTheme.typography.labelSmall.copy(Color.DarkGray),
+                modifier = Modifier.align(Alignment.Start)
+            )
+            TextComposable(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                modifier = Modifier.align(Alignment.Start)
+            )
+            TextComposable(
+                text = writer,
+                style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
+                modifier = Modifier.align(Alignment.End)
+            )
+        }
+    }
+    if(showDetail.value) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .background(if(screenType == 0) Color(0xFFC6DBDA) else Color(0XFFF6EAC2))
+            .padding(all = 10.dp)) {
+            TextComposable(
+                text = content,
+                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                modifier = Modifier
+            )
+            if(flag) {
+                TextComposable(text = answer,
+                    style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                    modifier = Modifier)
+            }
+        }
+    }
+    Divider(Modifier.border(BorderStroke(1.dp, Color.DarkGray)))
+
+        if(showDialog) {
+            when(screenType) {
+                0 -> { // announcement
+                    ConfirmDialog(screenType = 0, onDismiss = { showDialog = false }, content = title ) {
+                        modify.value = true
+                        clickAction()
+                    }
+                }
+                1 -> { // q&a
+                    when(flag) {
+                        true -> {
+                            Toast.makeText(context, context.getString(R.string.q_a_answer_Warning), Toast.LENGTH_SHORT).show()
+                        }
+                        false -> {
+                            ConfirmDialog(screenType = 1, onDismiss = { showDialog = false }, content = title) { clickAction() }
+                        }
+                    }
+                }
+
+            }
+        }
+}
+
+@OptIn(ExperimentalFoundationApi::class)
+@Composable
+fun LoadList(screenType: Int, flag: MutableState<Boolean>, editTitle: MutableState<String>, editContent: MutableState<String>, title: String, content: String, writer: String, answer: String, clickAction: () -> Unit) {
+    val context = LocalContext.current
     val expanded = remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     Column(modifier = Modifier
@@ -170,19 +270,43 @@ fun LoadList(type: Int, flag: Boolean, editTitle: MutableState<String>, editCont
         .combinedClickable(
             onClick = { expanded.value = !expanded.value },
             onLongClick = {
-                // 작성자 uid 가 현재 uid 와 일치 할 경우 에만 수정 가능
-                editTitle.value = title
-                editContent.value = content
-                showDialog = true
+                // 작성자가 현재 로그인 한 사용자 와 일치 할 경우 에만 수정 가능
+                if (writer == User.name && screenType == 0) {
+                    flag.value = true
+                    editTitle.value = title
+                    editContent.value = content
+                    showDialog = true
+                } else if (writer != User.name && screenType == 0) {
+                    Toast
+                        .makeText(
+                            context,
+                            context.getString(R.string.announcement_edit_warning),
+                            Toast.LENGTH_SHORT
+                        )
+                        .show()
+                } else {
+                    editTitle.value = title
+                    editContent.value = content
+                    showDialog = true
+                }
             }
         )
     ) {
+        val text = if(screenType != 0) {
+            when(flag.value) {
+                true -> {
+                    stringResource(id = R.string.complete_answer)
+                }
+                false -> {
+                    stringResource(id = R.string.waiting_for_answer)
+                }
+            }
+        } else ""
+
         TextComposable(
-            text = stringResource(id = R.string.database_question_title_mean),
-            style = MaterialTheme.typography.labelSmall.copy(color = Color.LightGray),
-            modifier = Modifier
-                .padding(start = 6.dp, top = 6.dp)
-                .align(Alignment.Start)
+            text = text,
+            style = MaterialTheme.typography.labelSmall.copy(if(flag.value) Color.Blue else Color.DarkGray),
+            modifier = Modifier.padding(start = 6.dp, end = 6.dp)
         )
         TextComposable(
             text = title,
@@ -202,7 +326,7 @@ fun LoadList(type: Int, flag: Boolean, editTitle: MutableState<String>, editCont
             Column(modifier = Modifier
                 .fillMaxWidth()) {
                 TextComposable(
-                    text = "[${stringResource(id = R.string.database_question_content_mean)}]",
+                    text = if(screenType == 0) "[${stringResource(id = R.string.announcement)}]" else "[${stringResource(id = R.string.database_question_content_mean)}]",
                     style = MaterialTheme.typography.labelSmall.copy(color = Color.Black),
                     modifier = Modifier.padding(all = 10.dp)
                 )
@@ -212,7 +336,7 @@ fun LoadList(type: Int, flag: Boolean, editTitle: MutableState<String>, editCont
                     modifier = Modifier.padding(all = 10.dp)
                 )
             }
-            if(flag) {
+            if(flag.value) {
                 Column(modifier = Modifier
                     .fillMaxWidth()) {
                     TextComposable(
@@ -229,7 +353,14 @@ fun LoadList(type: Int, flag: Boolean, editTitle: MutableState<String>, editCont
             }
         }
         if(showDialog) {
-            ConfirmDialog(type = type, onDismiss = { showDialog = false }, content = title) { clickAction() }
+            when(flag.value) {
+                true -> {
+                    Toast.makeText(context, context.getString(R.string.q_a_answer_Warning), Toast.LENGTH_SHORT).show()
+                }
+                false -> {
+                    ConfirmDialog(screenType = screenType, onDismiss = { showDialog = false }, content = title) { clickAction() }
+                }
+            }
         }
         Divider()
     }
@@ -247,7 +378,7 @@ fun EnterInfoSingleColumn(essential: Boolean, mean: String, tfValue: MutableStat
             placeholder = { TextFieldPlaceholderOrSupporting(isPlaceholder = true, text = "$mean ${stringResource(id = R.string.sign_up_placeholder)}", correct = true)},
             interactionSource = MutableInteractionSource(),
             visualTransformation = visualTransformation,
-            modifier = Modifier.fillMaxSize(),
+            modifier = Modifier.fillMaxWidth(),
             keyboardOptions = keyboardOptions,
             supportingText = { supportingText() },
             singleLine = true,
@@ -259,7 +390,7 @@ fun EnterInfoSingleColumn(essential: Boolean, mean: String, tfValue: MutableStat
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EnterInfoMultiColumn(mean: String, tfValue: MutableState<String>, keyboardOptions: KeyboardOptions, visualTransformation: VisualTransformation, modifier: Modifier) {
+fun EnterInfoMultiColumn(mean: String, enabled: Boolean, tfValue: MutableState<String>, keyboardOptions: KeyboardOptions, visualTransformation: VisualTransformation, modifier: Modifier) {
     Column(modifier = Modifier
         .padding(bottom = 14.dp)
         .fillMaxSize()) {
@@ -272,6 +403,7 @@ fun EnterInfoMultiColumn(mean: String, tfValue: MutableState<String>, keyboardOp
             interactionSource = MutableInteractionSource(),
             visualTransformation = visualTransformation,
             modifier = modifier,
+            enabled = enabled,
             keyboardOptions = keyboardOptions,
             colors = textFieldColors(Color.Blue.copy(0.2f))
         )
@@ -289,7 +421,7 @@ fun selectRadioButton(string: List<String>): String {
                 modifier = Modifier.clickable(interactionSource = MutableInteractionSource(), indication = null) { selectedOption = role }
             ) {
                 RadioButton(
-                    selected = (role == selectedOption),
+                    selected = (role == selectedOption), // role 있으면 거기에 없으면 처음 거에
                     onClick = null
                 )
                 TextComposable(
@@ -311,7 +443,7 @@ fun selectRadioButton(string: List<String>): String {
  * */
 
 @Composable
-fun ConfirmDialog(type: Int, onDismiss: () -> Unit, content: String, confirmAction: () -> Unit) {
+fun ConfirmDialog(screenType: Int, onDismiss: () -> Unit, content: String, confirmAction: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
         text = {
@@ -325,7 +457,7 @@ fun ConfirmDialog(type: Int, onDismiss: () -> Unit, content: String, confirmActi
         },
         containerColor = Color.White,
         confirmButton = {
-            when(type){
+            when(screenType){
                 0 -> {
                     TextComposable(
                         text = stringResource(id = R.string.edit),
@@ -354,7 +486,7 @@ fun ConfirmDialog(type: Int, onDismiss: () -> Unit, content: String, confirmActi
             }
         },
         dismissButton = {
-            if(type == 2) {
+            if(screenType == 2) {
                 TextComposable(text = stringResource(id = R.string.not),
                     style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
                     modifier = Modifier.clickable { onDismiss() })

@@ -28,6 +28,7 @@ import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
@@ -95,7 +96,9 @@ fun FirstScreen() {
                 if(userEmail.value.isNotEmpty() && userPassword.value.isNotEmpty()) {
                     loading.value = true
                     Loading(loading)
-                    loginUser(context as Activity, navController, userEmail, userPassword, loading)
+                    LaunchedEffect(this) {
+                        loginUser(context as Activity, navController, userEmail, userPassword, loading)
+                    }
                     loading.value = false
                 }
                 else {
@@ -109,6 +112,9 @@ fun FirstScreen() {
         }
         composable(context.getString(R.string.title_activity_main)) {
             MainScreen()
+        }
+        composable(context.getString(R.string.find_password)) {
+            FindIdAndPasswordScreen(navController)
         }
     }
 }
@@ -139,7 +145,7 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
                 textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
                 placeholder = {
                     Text(text = stringResource(id = R.string.enter_email),
-                        style = MaterialTheme.typography.bodyMedium.copy(Color.Black))
+                        style = MaterialTheme.typography.bodyMedium.copy(Color.Gray))
                 },
                 colors = TextFieldDefaults.textFieldColors(
                     containerColor = Color.LightGray,
@@ -205,11 +211,18 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
             Spacer(modifier = Modifier.height(20.dp))
             Row(verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.Center) {
-                Text(text = stringResource(id = R.string.sign_up),
+                TextComposable(
+                    text = stringResource(id = R.string.find_password),
+                    style = MaterialTheme.typography.bodyMedium.copy(Color.Black, textAlign = TextAlign.Center),
                     modifier = Modifier
-                        .weight(1f)
-                        .clickable(interactionSource = MutableInteractionSource(), indication = null) { navController.navigate(context.getString(R.string.title_activity_sign_up)) },
-                    style = MaterialTheme.typography.bodyMedium.copy(Color.Black, textAlign = TextAlign.Center))
+                        .clickable(interactionSource = MutableInteractionSource(), indication = null) { navController.navigate(context.getString(R.string.find_password)) }
+                        .weight(1f))
+                TextComposable(
+                    text = stringResource(id = R.string.sign_up),
+                    style = MaterialTheme.typography.bodyMedium.copy(Color.Black, textAlign = TextAlign.Center),
+                    modifier = Modifier
+                        .clickable(interactionSource = MutableInteractionSource(), indication = null) { navController.navigate(context.getString(R.string.title_activity_sign_up)) }
+                        .weight(1f))
             }
         }
         Box(Modifier.align(Alignment.Center)) {

@@ -2,6 +2,7 @@ package com.jm.familyboard.reusable
 
 import android.app.Activity
 import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -13,6 +14,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.jm.familyboard.MainActivity
 import com.jm.familyboard.R
 import com.jm.familyboard.User
 
@@ -91,6 +93,7 @@ fun LookUpRepresentativeUid(uid: MutableState<String>) {
     }
 }
 
+
 @Composable
 fun InvitationCode(code: MutableState<String>) {
     val invitationCodeRef = FirebaseDatabase.getInstance().getReference("real/user/real_user_group_name")
@@ -123,7 +126,6 @@ fun registerDatabase(groupNameTest: MutableState<Int>, groupNameValue: MutableSt
     val emailRef = FirebaseDatabase.getInstance().getReference("real/user/email")
     val groupNameRef = FirebaseDatabase.getInstance().getReference("real/user/real_user_group_name")
     emailRef.child(email.replace("@", "_").replace(".", "_")).setValue("email")
-//    checkGroupName(groupNameTest, groupNameValue.value)
     checkDuplicate("real/user/real_user_group_name", groupNameValue.value, groupNameTest, 1, 2)
     if(groupNameTest.value == 2) groupNameRef.child(groupNameValue.value).setValue(generateInvitationCode())
     generateDB("real/user/real_user/$uid", groupNameValue.value, email, name, roles)
@@ -189,6 +191,9 @@ fun getUserData(activity: Activity, uid: String, password: String, navController
                             })
                             if (User.email.isNotEmpty() && User.name.isNotEmpty()) {
                                 loading.value = false
+                                val intent = Intent((activity as Context), MainActivity::class.java)
+                                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                (activity as Context).startActivity(intent)
                                 navController.navigate((activity as Context).getString(R.string.title_activity_main))
                             }
                         }
@@ -220,6 +225,18 @@ fun loginUser(activity: Activity, navController: NavHostController, email: Mutab
                     println("login fail : ${task.exception}")
                     Toast.makeText(activity, activity.getString(R.string.try_again), Toast.LENGTH_SHORT).show()
                 }
+            }
+        }
+}
+
+fun sendResetPasswordEmail(email: String) {
+    FirebaseAuth.getInstance().sendPasswordResetEmail(email)
+        .addOnCompleteListener {
+            if(it.isSuccessful) {
+                println("재설정 메일을 보냈습니다.")
+            }
+            else {
+                println("it.exception ${it.exception}")
             }
         }
 }

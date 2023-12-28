@@ -1,24 +1,24 @@
 <resources>
-    <string name="app_name">FamilyBoard</string>
+    <string name="app_name">가족 게시판</string>
 
     <string name="title_activity_main">Main</string>
-
-    <string name="first">first</string>
-
-    <string name="app_bar_function1">공지 사항 등록</string>
-    <string name="app_bar_function2">대표 설정</string>
-    <string name="app_bar_function3">정보 수정</string>
-    <string name="app_bar_function4">질문 등록</string>
-
     <string name="title_activity_login">Login</string>
+    <string name="title_activity_sign_up">SignUp</string>
+    <string name="first">first</string>
     <string name="login">로그인</string>
 
     <string name="enter_email">email 입력</string>
     <string name="enter_password">password 입력</string>
     <string name="try_again">로그인을 다시 시도 해 주세요</string>
 
-    <string name="title_activity_sign_up">SignUp</string>
+    <string name="find_password">비밀번호 찾기</string>
+    <string name="input_email">가입 할 때 사용한 이메일을 입력하세요.</string>
+    <string name="send_email">비밀번호 재설정 이메일을 전송했습니다.</string>
+    <string name="find_password_not_valid">유효한 형식의 이메일이 아닙니다.</string>
+    <string name="find_password_valid">유효한 형식의 이메일 입니다.</string>
+
     <string name="sign_up_nav_route_1">sign_up_enter_info</string>
+    <string name="sign_up_nav_route_2">sign_up_success</string>
     <string name="sign_up">회원 가입</string>
     <string name="sign_up_essential">*</string>
     <string name="sign_up_essential_text">필수 항목 입니다.</string>
@@ -30,6 +30,8 @@
     <string name="sign_up_email_duplicate">이메일이 중복 됩니다.</string>
     <string name="sign_up_email_valid">사용할 수 있는 이메일 입니다.</string>
 
+    <string name="current_password">현재 비밀 번호</string>
+    <string name="not_correct_current_password">현재 비밀번호가 알맞지 않습니다. 다시 확인 해 주세요.</string>
     <string name="sign_up_password">비밀 번호</string>
     <string name="sign_up_password_hint">비밀 번호는 8~20자의 영어/숫자/특수문자를 각각 1자씩 포함 해야 합니다.</string>
     <string name="sign_up_password_appropriate">사용 가능한 비밀 번호</string>
@@ -54,11 +56,11 @@
     <string name="sign_up_father">아버지</string>
     <string name="sign_up_children">자식</string>
     <string name="sign_up_etc">기타</string>
-    <string name="sign_up_nav_route_2">sign_up_success</string>
     <string name="sign_up_complete">회원 가입이 완료되었습니다.\n\n가입 한 이메일로 다시 로그인 해 주세요.</string>
     <string name="go_to_login">로그인 하러 가기</string>
 
     <string name="back">뒤로 가기</string>
+    <string name="change_password_please_login_again">비밀번호가 변경 되었습니다.\n다시 로그인 해 주세요.</string>
     <string name="please_do_login">로그인 후 이용 해 주세요.</string>
 
     <string name="main">메인 화면</string>
@@ -66,11 +68,13 @@
     <string name="announcement">공지 사항</string>
     <string name="register_notice">공지 사항 등록</string>
     <string name="announcement_information">상단 우측 아이콘을 누르면 공지사항을 등록 할 수 있습니다.\n공지를 짧게 누르면 공지 내용, 길게 누르면 수정, 삭제 할 수 있습니다.</string>
-    <string name="announcement_date_format">yyyy년 MM월 dd일</string>
+    <string name="announcement_date_format">yyyy. MM. dd</string>
 
-    <string name="announcement_nav_route_1">announcement_list</string>
-    <string name="announcement_nav_route_2">announcement_register</string>
-    <string name="announcement_nav_route_3">announcement_answer</string>
+    <string name="writer">작성자</string>
+
+    <string name="empty_screen">작성된 글이 없습니다.</string>
+
+    <string name="announcement_edit_warning">작성자 외에는 수정 할 수 없습니다.</string>
 
     <string name="edit">수정하기</string>
     <string name="answer">답변하기</string>
@@ -89,6 +93,7 @@
     <string name="database_date">date</string>
     <string name="database_registrant">registrant</string>
     <string name="database_writer">writer</string>
+    <string name="database_writer_uid">writerUid</string>
     <string name="database_uid">uid</string>
 
     <string name="database_email">email</string>
@@ -96,7 +101,7 @@
     <string name="database_roles">roles</string>
 
     <string name="selection">선택</string>
-표
+
     <string name="family_information">가족 정보</string>
     <string name="representative">가족 대표</string>
     <string name="set_representative">가족 대표 설정</string>
@@ -104,8 +109,6 @@
     <string name="family_information_representative_exist_but_not_me">가족 대표만 대표를 재설정 할 수 있습니다.\n가족 대표에게 변경 요청 해 주세요.</string>
     <string name="family_information_representative_is_me">가족 대표를 변경 할 수 있습니다.\n우측 상단 아이콘을 눌러 변경 해 주세요.</string>
 
-    <string name="family_nav_route_1">family_list</string>
-    <string name="family_nav_route_2">family_representative</string>
     <string name="family_representative">representative</string>
     <string name="please_set_representative">가족 대표를 설정 해 주세요.</string>
     <string name="representative_selection_confirm">가족 대표로 설정하겠습니까?\n설정 후에는 가족 대표만 다른 대표로 변경 할 수 있습니다.</string>
@@ -113,14 +116,14 @@
 
     <string name="my_information_information">상단 우측 아이콘을 누르면 이름, 역할, 비밀번호를 수정 할 수 있습니다.\n가족 대표의 경우 초대 코드를 터치하면 복사 할 수 있습니다.</string>
     <string name="my_information">내 정보</string>
-    <string name="my_information_nav_route_1">show_information</string>
-    <string name="my_information_nav_route_2">edit_information</string>
+    <string name="my_information_confirm_password">비밀번호 확인</string>
     <string name="my_name">이름</string>
     <string name="my_email">이메일</string>
     <string name="my_roles">가족 내 역할</string>
     <string name="my_group_name">가족 그룹명</string>
     <string name="my_invitation_code">초대 코드</string>
     <string name="copy_my_invitation_code">코드 복사</string>
+    <string name="my_information_edit_complete">정보 수정 완료</string>
 
     <string name="logout">로그아웃</string>
     <string name="do_logout">로그아웃 하시겠습니까?</string>
@@ -132,11 +135,7 @@
     <string name="q_a_information">상단 우측의 아이콘을 누르면 질문을 등록 할 수 있습니다.\n질문 목록을 짧게 누르면 질문 내용과 답변\n길게 누르면 답변 등록을 할 수 있습니다.</string>
     <string name="q_a">질의응답</string>
     <string name="q_a_list">질의응답 목록</string>
-    <string name="q_a_nav_route_1">q_a_list</string>
-    <string name="q_a_register">질문 등록</string>
-    <string name="q_a_nav_route_2">register_q_a</string>
-    <string name="q_a_answer">답변 등록</string>
-    <string name="q_a_nav_route_3">answer_q_a</string>
+    <string name="q_a_answer_Warning">이미 답변이 달렸기 때문에 답변을 달 수 없습니다.</string>
 
     <string name="database_flag">flag</string>
     <string name="database_question">question</string>
@@ -146,6 +145,8 @@
     <string name="database_question_content_mean">질문 내용</string>
     <string name="database_answer_content">answerContent</string>
     <string name="database_answer_mean">답변</string>
+    <string name="waiting_for_answer">답변 대기</string>
+    <string name="complete_answer">답변 완료</string>
 
     <string name="yes">예</string>
     <string name="not">아니오</string>

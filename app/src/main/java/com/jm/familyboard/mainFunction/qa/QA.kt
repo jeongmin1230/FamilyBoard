@@ -1,4 +1,4 @@
-package com.jm.familyboard.mainFunction
+package com.jm.familyboard.mainFunction.qa
 
 import android.annotation.SuppressLint
 import android.content.Context
@@ -24,6 +24,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -56,39 +57,38 @@ import java.util.Date
 fun Q_AScreen(mainNavController: NavHostController) {
     val context = LocalContext.current
     val no = remember { mutableIntStateOf(0) }
-    val appBarImage = R.drawable.ic_q_a
+    val qaArray = stringArrayResource(id = R.array.q_a_nav)
     val questionContent = remember { mutableStateOf("") }
     val currentNavController = rememberNavController()
-    NavHost(currentNavController, startDestination = context.getString(R.string.q_a_nav_route_1)) {
-        composable(context.getString(R.string.q_a_nav_route_1)) {
+    NavHost(currentNavController, startDestination = qaArray[1]) {
+        composable(qaArray[1]) {
             Column(modifier = Modifier
                 .background(Color(0XFFF6EAC2))
                 .fillMaxSize()) {
-                AppBar(true, stringResource(id = R.string.q_a_list), appBarImage, { currentNavController.navigate(context.getString(R.string.q_a_nav_route_2))}) { mainNavController.popBackStack() }
+                AppBar(true, qaArray[0], R.drawable.ic_q_a, { currentNavController.navigate(qaArray[3])}) { mainNavController.popBackStack() }
                 Q_A_List(no, questionContent, context, currentNavController)
             }
         }
-        composable(context.getString(R.string.q_a_nav_route_2)) {
+        composable(qaArray[3]) {
             Column(modifier = Modifier
                 .background(Color(0XFFF6EAC2))
                 .fillMaxSize()) {
-                AppBar(false, stringResource(id = R.string.q_a_register), null, {}) { currentNavController.popBackStack() }
+                AppBar(false, qaArray[2], null, {}) { currentNavController.popBackStack() }
                 RegisterQuestionScreen(context, currentNavController)
             }
         }
 
-        composable(context.getString(R.string.q_a_nav_route_3)) {
+        composable(qaArray[5]) {
             Column(modifier = Modifier
                 .background(Color(0XFFF6EAC2))
                 .fillMaxSize()) {
-                AppBar(false, stringResource(id = R.string.q_a_answer), null, {}) { currentNavController.popBackStack() }
+                AppBar(false, qaArray[4], null, {}) { currentNavController.popBackStack() }
                 ReplyScreen(context, no.intValue, questionContent, currentNavController)
             }
         }
     }
 }
 
-// 상단에서 버튼 눌렀을 땐 무조건 작성, 꾹 눌렀을 땐 무조건 답변
 @Composable
 fun Q_A_List(no: MutableState<Int>, questionContent: MutableState<String>, context: Context, currentNavController: NavHostController) {
     var qas by remember { mutableStateOf(emptyList<QA>()) }
@@ -108,7 +108,6 @@ fun Q_A_List(no: MutableState<Int>, questionContent: MutableState<String>, conte
                     val title = childSnapshot.child(context.getString(R.string.database_question_title)).getValue(String::class.java) ?: ""
                     val registrant = childSnapshot.child(context.getString(R.string.database_registrant)).child(context.getString(R.string.database_name)).getValue(String::class.java) ?: ""
                     val answer = childSnapshot.child(context.getString(R.string.database_answer_content)).child(context.getString(R.string.database_content)).getValue(String::class.java) ?: ""
-//                    val answers = childSnapshot.child(context.getString(R.string.database_answer_content))
                     val content = childSnapshot.child(context.getString(R.string.database_question_content)).child(context.getString(R.string.database_content)).getValue(String::class.java) ?: ""
                     registerTitle.value = title
                     questionContent.value = content
@@ -138,11 +137,12 @@ fun Q_A_List(no: MutableState<Int>, questionContent: MutableState<String>, conte
                 modifier = Modifier
             )
         } else {
+            val flag = remember { mutableStateOf(false) }
             Spacer(modifier = Modifier.height(20.dp))
             qas.forEach { qa ->
                 LoadList(
-                    type = 1,
-                    flag = qa.flag,
+                    screenType = 1,
+                    flag = flag,
                     editTitle = registerTitle,
                     editContent = registerContent,
                     title = qa.title,
@@ -151,7 +151,7 @@ fun Q_A_List(no: MutableState<Int>, questionContent: MutableState<String>, conte
                     writer = qa.writer
                 ) {
                     no.value = qa.no
-                    currentNavController.navigate(context.getString(R.string.q_a_nav_route_3))
+//                    currentNavController.navigate(qaArray[5])
                 }
             }
         }
@@ -180,7 +180,8 @@ fun RegisterQuestionScreen(context: Context, currentNavController: NavHostContro
                 ) {}
                 Spacer(modifier = Modifier.height(6.dp))
                 EnterInfoMultiColumn(
-                    mean = stringResource(R.string.q_a_answer_content),
+                    mean = stringResource(R.string.q_a_content),
+                    enabled = true,
                     tfValue = questionContent,
                     keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
                     visualTransformation = VisualTransformation.None,
@@ -211,6 +212,7 @@ fun RegisterQuestionScreen(context: Context, currentNavController: NavHostContro
                     val contentRef = ref.child(context.getString(R.string.database_question_content))
                     contentRef.child(context.getString(R.string.database_date)).setValue(createDate)
                     contentRef.child(context.getString(R.string.database_content)).setValue(questionContent.value)
+                    ref.child(context.getString(R.string.database_flag)).setValue(false)
                     val registrantRef = ref.child(context.getString(R.string.database_registrant))
                     registrantRef.child(context.getString(R.string.database_name)).setValue(User.name)
                     registrantRef.child(context.getString(R.string.database_uid)).setValue(User.uid)
@@ -234,6 +236,7 @@ fun ReplyScreen(context: Context, no: Int, questionContent: MutableState<String>
             Column(Modifier.verticalScroll(rememberScrollState())) {
                 EnterInfoMultiColumn(
                     mean = stringResource(R.string.q_a_content),
+                    enabled = false,
                     tfValue = questionContent,
                     keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
                     visualTransformation = VisualTransformation.None,
@@ -245,6 +248,7 @@ fun ReplyScreen(context: Context, no: Int, questionContent: MutableState<String>
                 Spacer(modifier = Modifier.height(6.dp))
                 EnterInfoMultiColumn(
                     mean = stringResource(R.string.q_a_answer_content),
+                    enabled = true,
                     tfValue = answerContent,
                     keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
                     visualTransformation = VisualTransformation.None,
@@ -262,6 +266,7 @@ fun ReplyScreen(context: Context, no: Int, questionContent: MutableState<String>
             modifier = Modifier.fillMaxWidth()) {
             noRef.addListenerForSingleValueEvent(object : ValueEventListener {
                 override fun onDataChange(snapshot: DataSnapshot) {
+                    noRef.child(context.getString(R.string.database_flag)).setValue(true)
                     val answerContentRef = noRef.child(context.getString(R.string.database_answer_content))
                     answerContentRef.child(context.getString(R.string.database_content)).setValue(answerContent.value)
                     answerContentRef.child(context.getString(R.string.database_date)).setValue(date)

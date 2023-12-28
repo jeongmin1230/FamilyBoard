@@ -1,6 +1,7 @@
 package com.jm.familyboard
 
 import android.content.Context
+import android.content.Intent
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
@@ -77,7 +78,12 @@ fun SignUpScreen(loginNavController: NavHostController) {
                 .fillMaxSize()
                 .background(Color(0xFFD1C4E9))) {
                 AppBar(false, screenName, null, {}) { signUpNavController.popBackStack() }
-                DoneSignUp(context, loginNavController)
+                DoneSignUp {
+                    val intent = Intent(context, Login::class.java)
+                    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                    context.startActivity(intent)
+                    loginNavController.navigate(context.getString(R.string.first))
+                }
             }
         }
     }
@@ -276,28 +282,28 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
 }
 
 @Composable
-fun Type(yes: MutableState<Boolean>, no: MutableState<Boolean>, click: () -> Unit) {
+fun Type(first: MutableState<Boolean>, second: MutableState<Boolean>, click: () -> Unit) {
     Row(modifier = Modifier
         .padding(start = 10.dp, bottom = 10.dp)
         .clickable { click() }) {
         Text(
             text = stringResource(id = R.string.sign_up_yes_invite_code),
-            style = MaterialTheme.typography.bodySmall.copy(if(yes.value) Color.Black else Color.LightGray),
+            style = MaterialTheme.typography.bodySmall.copy(if(first.value) Color.Black else Color.LightGray),
             modifier = Modifier
                 .padding(end = 4.dp)
                 .clickable {
-                    yes.value = true
-                    no.value = false
+                    first.value = true
+                    second.value = false
                 }
         )
         Text(
             text = stringResource(id = R.string.sign_up_no_invite_code),
-            style = MaterialTheme.typography.bodySmall.copy(if(no.value)Color.Black else Color.LightGray),
+            style = MaterialTheme.typography.bodySmall.copy(if(second.value)Color.Black else Color.LightGray),
             modifier = Modifier
                 .padding(start = 4.dp)
                 .clickable {
-                    yes.value = false
-                    no.value = true
+                    first.value = false
+                    second.value = true
                 }
         )
     }
@@ -320,7 +326,7 @@ fun CompleteButton(isEnable: Boolean, color: Color, text: String, modifier: Modi
 }
 
 @Composable
-fun DoneSignUp(context: Context, loginNavController: NavHostController) {
+fun DoneSignUp(onDone: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
             modifier = Modifier.weight(1f),
@@ -333,13 +339,14 @@ fun DoneSignUp(context: Context, loginNavController: NavHostController) {
                 modifier = Modifier.fillMaxWidth()
             )
         }
-        CompleteButton(isEnable = true,
+        CompleteButton(
+            isEnable = true,
             text = stringResource(id = R.string.go_to_login),
             color = Color.Blue.copy(0.2f),
             modifier = Modifier
                 .padding(all = 10.dp)
                 .fillMaxWidth()) {
-            loginNavController.navigate(context.getString(R.string.first))
+            onDone()
         }
     }
 }
