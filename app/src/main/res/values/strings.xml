@@ -1,5 +1,5 @@
 <resources>
-    <string name="app_name">가족 게시판</string>
+    <string name="app_name">가게</string>
 
     <string name="title_activity_main">Main</string>
     <string name="title_activity_login">Login</string>
@@ -85,7 +85,8 @@
     <string name="no">글 번호</string>
     <string name="title">제목</string>
     <string name="content">내용</string>
-    <string name="date">작성 날짜</string>
+    <string name="register_date">작성일</string>
+    <string name="first_register_date">최초 등록 날짜</string>
 
     <string name="database_no">no</string>
     <string name="database_title">title</string>
@@ -114,7 +115,8 @@
     <string name="representative_selection_confirm">가족 대표로 설정하겠습니까?\n설정 후에는 가족 대표만 다른 대표로 변경 할 수 있습니다.</string>
     <string name="me">본인</string>
 
-    <string name="my_information_information">상단 우측 아이콘을 누르면 이름, 역할, 비밀번호를 수정 할 수 있습니다.\n가족 대표의 경우 초대 코드를 터치하면 복사 할 수 있습니다.</string>
+    <string name="my_information_information">상단 우측 아이콘을 누르면 이름, 역할, 비밀번호를 수정 할 수 있습니다.</string>
+    <string name="my_information_for_representative">초대 코드를 터치하면 복사 할 수 있습니다.</string>
     <string name="my_information">내 정보</string>
     <string name="my_information_confirm_password">비밀번호 확인</string>
     <string name="my_name">이름</string>
@@ -124,6 +126,7 @@
     <string name="my_invitation_code">초대 코드</string>
     <string name="copy_my_invitation_code">코드 복사</string>
     <string name="my_information_edit_complete">정보 수정 완료</string>
+    <string name="my_information_edit_success">정보 수정이 완료되었습니다.</string>
 
     <string name="logout">로그아웃</string>
     <string name="do_logout">로그아웃 하시겠습니까?</string>
@@ -135,6 +138,9 @@
     <string name="q_a_information">상단 우측의 아이콘을 누르면 질문을 등록 할 수 있습니다.\n질문 목록을 짧게 누르면 질문 내용과 답변\n길게 누르면 답변 등록을 할 수 있습니다.</string>
     <string name="q_a">질의응답</string>
     <string name="q_a_list">질의응답 목록</string>
+    <string name="q_a_write_question">질문 등록</string>
+    <string name="q_a_answer">답변</string>
+    <string name="q_a_write_answer">답변 등록</string>
     <string name="q_a_answer_Warning">이미 답변이 달렸기 때문에 답변을 달 수 없습니다.</string>
 
     <string name="database_flag">flag</string>

@@ -22,6 +22,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
@@ -68,16 +69,16 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                     TextComposable(
                         text = stringResource(id = R.string.empty_screen),
                         style = MaterialTheme.typography.titleLarge.copy(color = Color.Black),
+                        fontWeight = FontWeight.Bold,
                         modifier = Modifier
                     )
                 } else {
                     announcementList.value.forEach { announcement ->
-                        val no = mutableIntStateOf(announcement.no)
-                        announcementViewModel.vmWritingNo = no
                         AllList(
                             screenType = 0,
                             flag = false,
                             modify = announcementViewModel.vmModify,
+                            no = 0,
                             title = announcement.title,
                             content = announcement.content,
                             date = announcement.date,
@@ -87,6 +88,8 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                         ) {
                             announcementViewModel.vmTitle.value = announcement.title
                             announcementViewModel.vmContent.value = announcement.content
+                            announcementViewModel.vmWritingNo.intValue = announcement.no
+                            announcementViewModel.vmWriteDate.value = announcement.date
                             currentNavController.navigate(announcementArray[3])
                         }
                     }
@@ -99,9 +102,10 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                 .background(Color.White)
                 .fillMaxSize()) {
                 AppBar(false, announcementArray[2], null, {}) { currentNavController.popBackStack() }
-                announcementViewModel.vmWriteDate.value = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis()))
-                RegisterNotice(announcementViewModel.vmTitle, announcementViewModel.vmContent, announcementViewModel.vmWriteDate.value) {
-                    announcementViewModel.writeDB(context, announcementViewModel.vmModify.value,announcementViewModel.vmWritingNo.intValue, currentNavController)
+                val currentDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis()))
+                announcementViewModel.vmWriteDate.value = if(announcementViewModel.vmModify.value) announcementViewModel.vmWriteDate.value else currentDate
+                RegisterNotice(announcementViewModel.vmModify.value, announcementViewModel.vmTitle, announcementViewModel.vmContent, announcementViewModel.vmWriteDate.value) {
+                    announcementViewModel.writeDB(context, announcementViewModel.vmModify.value, announcementViewModel.vmWritingNo.intValue, currentNavController)
                 }
             }
         }
@@ -109,7 +113,7 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
 }
 
 @Composable
-fun RegisterNotice(vmTitle: MutableState<String>, vmContent: MutableState<String>, vmWriteDate: String, writeDB: () -> Unit) {
+fun RegisterNotice(vmModify: Boolean, vmTitle: MutableState<String>, vmContent: MutableState<String>, vmWriteDate: String, writeDB: () -> Unit) {
     Column {
         Column(Modifier.weight(1f)) {
             Column(Modifier.verticalScroll(rememberScrollState())) {
@@ -136,8 +140,9 @@ fun RegisterNotice(vmTitle: MutableState<String>, vmContent: MutableState<String
                         .padding(horizontal = 10.dp)
                 )
                 TextComposable(
-                    text = "${stringResource(R.string.date)} $vmWriteDate",
+                    text = if(vmModify) "${stringResource(R.string.first_register_date)} $vmWriteDate" else "${stringResource(id = R.string.register_date)} $vmWriteDate",
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Black),
+                    fontWeight = FontWeight.Light,
                     modifier = Modifier
                         .align(Alignment.End)
                         .padding(end = 10.dp)

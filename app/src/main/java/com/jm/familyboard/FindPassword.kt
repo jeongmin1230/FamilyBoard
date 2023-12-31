@@ -1,5 +1,6 @@
 package com.jm.familyboard
 
+import android.content.Context
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
@@ -18,13 +19,10 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import com.jm.familyboard.reusable.AppBar
-import com.jm.familyboard.reusable.EnterInfoSingleColumn
-import com.jm.familyboard.reusable.NewPasswordSupportingText
 import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
 import com.jm.familyboard.reusable.WhatMean
 import com.jm.familyboard.reusable.isEmailValid
@@ -33,7 +31,7 @@ import com.jm.familyboard.reusable.textFieldColors
 import com.jm.familyboard.reusable.textFieldKeyboard
 
 @Composable
-fun FindIdAndPasswordScreen(loginNavController: NavHostController) {
+fun ResetPassword(loginNavController: NavHostController) {
     val context = LocalContext.current
     Column(
         modifier = Modifier
@@ -41,7 +39,7 @@ fun FindIdAndPasswordScreen(loginNavController: NavHostController) {
             .background(Color.White)
     ) {
         AppBar(enabled = false, screenName = stringResource(id = R.string.find_password), imageButtonSource = null, imageFunction = {}) { loginNavController.popBackStack()}
-        FindPasswordScreen {
+        FindPasswordScreen(context) {
             Toast.makeText(context, context.getString(R.string.send_email), Toast.LENGTH_SHORT).show()
             loginNavController.popBackStack() }
     }
@@ -49,7 +47,7 @@ fun FindIdAndPasswordScreen(loginNavController: NavHostController) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FindPasswordScreen(onClickBack: () -> Unit) {
+fun FindPasswordScreen(context: Context, onClickBack: () -> Unit) {
     val inputEmail = remember { mutableStateOf("") }
     var emailResult: Int
     Column(Modifier.padding(horizontal = 10.dp)) {
@@ -60,7 +58,7 @@ fun FindPasswordScreen(onClickBack: () -> Unit) {
                 onValueChange = { inputEmail.value = it },
                 keyboardActions = KeyboardActions(
                     onDone = { if(inputEmail.value.trim().isNotEmpty()) {
-                        sendResetPasswordEmail(inputEmail.value)
+                        sendResetPasswordEmail(context, inputEmail.value)
                         onClickBack()
                     } }),
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),

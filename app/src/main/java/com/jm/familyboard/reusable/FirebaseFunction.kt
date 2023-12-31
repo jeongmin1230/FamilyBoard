@@ -4,10 +4,7 @@ import android.app.Activity
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.ui.platform.LocalContext
 import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
@@ -17,6 +14,7 @@ import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.MainActivity
 import com.jm.familyboard.R
 import com.jm.familyboard.User
+import com.jm.familyboard.findRepresentativeUid
 
 fun checkDuplicate(path: String, text: String, test: MutableState<Int>, overlapValue: Int, nonOverlap: Int) {
     val reference = FirebaseDatabase.getInstance().reference.child(path)
@@ -38,7 +36,7 @@ fun checkDuplicate(path: String, text: String, test: MutableState<Int>, overlapV
 }
 
 fun checkInvitationCode(invitationCodeTest: MutableState<Int>, invitationCodeValue: String, groupNameValue: MutableState<String>) {
-    val invitationCodeRef = FirebaseDatabase.getInstance().reference.child("real/user/real_user_group_name")
+    val invitationCodeRef = FirebaseDatabase.getInstance().reference.child("real/group_name_and_invitation_code")
     val valueEventListener = object : ValueEventListener {
         override fun onDataChange(snapshot: DataSnapshot) {
             for(childSnapshot in snapshot.children) {
@@ -48,62 +46,6 @@ fun checkInvitationCode(invitationCodeTest: MutableState<Int>, invitationCodeVal
                     break
                 }
                 else invitationCodeTest.value = 1
-            }
-        }
-
-        override fun onCancelled(error: DatabaseError) {
-        }
-    }
-    invitationCodeRef.addValueEventListener(valueEventListener)
-}
-
-@Composable
-fun ReturnValue(path: String, comparisonTarget: String, string: MutableState<String>) {
-    val reference = FirebaseDatabase.getInstance().getReference(path)
-    LaunchedEffect(reference) {
-        val valueEventListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for(childSnapshot in snapshot.children) {
-//                    if(childSnapshot.key)
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-            }
-
-        }
-    }
-}
-@Composable
-fun LookUpRepresentativeUid(uid: MutableState<String>) {
-    val context = LocalContext.current
-    val representativeRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}")
-
-    LaunchedEffect(representativeRef) {
-        val valueEventListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                uid.value = snapshot.child(context.getString(R.string.family_representative)).value.toString()
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-            }
-        }
-
-        representativeRef.addListenerForSingleValueEvent(valueEventListener)
-    }
-}
-
-
-@Composable
-fun InvitationCode(code: MutableState<String>) {
-    val invitationCodeRef = FirebaseDatabase.getInstance().getReference("real/user/real_user_group_name")
-    val valueEventListener = object : ValueEventListener {
-        override fun onDataChange(snapshot: DataSnapshot) {
-            for(childSnapshot in snapshot.children) {
-                if(User.groupName == childSnapshot.key) {
-                    code.value = childSnapshot.value.toString()
-                    break
-                }
             }
         }
 
@@ -126,7 +68,7 @@ fun registerDatabase(groupNameTest: MutableState<Int>, groupNameValue: MutableSt
     val emailRef = FirebaseDatabase.getInstance().getReference("real/user/email")
     val groupNameRef = FirebaseDatabase.getInstance().getReference("real/user/real_user_group_name")
     emailRef.child(email.replace("@", "_").replace(".", "_")).setValue("email")
-    checkDuplicate("real/user/real_user_group_name", groupNameValue.value, groupNameTest, 1, 2)
+    checkDuplicate("real/group_name_and_invitation_code", groupNameValue.value, groupNameTest, 1, 2)
     if(groupNameTest.value == 2) groupNameRef.child(groupNameValue.value).setValue(generateInvitationCode())
     generateDB("real/user/real_user/$uid", groupNameValue.value, email, name, roles)
     generateDB("real/service/${groupNameValue.value}/composition/$uid", groupNameValue.value, email, name, roles)
@@ -175,6 +117,7 @@ fun getUserData(activity: Activity, uid: String, password: String, navController
                                                 val roles = snapshot.getValue(String::class.java)
                                                 if(roles != null) {
                                                     User.roles = roles
+                                                    findRepresentativeUid(activity)
                                                     storeUserCredentials(activity, name, email, password, groupName, roles)
                                                 }
                                             }
@@ -212,28 +155,30 @@ fun getUserData(activity: Activity, uid: String, password: String, navController
 
 fun loginUser(activity: Activity, navController: NavHostController, email: MutableState<String>, password: MutableState<String>, loading: MutableState<Boolean>) {
     val auth = FirebaseAuth.getInstance()
-    auth.signInWithEmailAndPassword(email.value.trim(), password.value.trim())
-        .addOnCompleteListener(activity) { task ->
-            if (task.isSuccessful) {
-                val uid = auth.currentUser?.uid ?: ""
-                getUserData(activity, uid, password.value.trim(), navController, loading)
-            } else {
-                loading.value = false
-                email.value = ""
-                password.value = ""
-                if(!task.isSuccessful) {
-                    println("login fail : ${task.exception}")
-                    Toast.makeText(activity, activity.getString(R.string.try_again), Toast.LENGTH_SHORT).show()
+    if(email.value.trim().isNotEmpty() && password.value.trim().isNotEmpty()) {
+        auth.signInWithEmailAndPassword(email.value.trim(), password.value.trim())
+            .addOnCompleteListener(activity) { task ->
+                if (task.isSuccessful) {
+                    val uid = auth.currentUser?.uid ?: ""
+                    getUserData(activity, uid, password.value.trim(), navController, loading)
+                } else {
+                    loading.value = false
+                    email.value = ""
+                    password.value = ""
+                    if(!task.isSuccessful) {
+                        println("login fail : ${task.exception}")
+                        Toast.makeText(activity, activity.getString(R.string.try_again), Toast.LENGTH_SHORT).show()
+                    }
                 }
             }
-        }
+    }
 }
 
-fun sendResetPasswordEmail(email: String) {
+fun sendResetPasswordEmail(context: Context, email: String) {
     FirebaseAuth.getInstance().sendPasswordResetEmail(email)
         .addOnCompleteListener {
             if(it.isSuccessful) {
-                println("재설정 메일을 보냈습니다.")
+                Toast.makeText(context, context.getString(R.string.send_email), Toast.LENGTH_SHORT).show()
             }
             else {
                 println("it.exception ${it.exception}")

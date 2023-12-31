@@ -233,7 +233,7 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
             else {
                 if(!isGroupNameTFFocused.value && groupNameValue.value.isNotEmpty()) {
                     LaunchedEffect(this) {
-                        checkDuplicate("real/user/real_user_group_name", groupNameValue.value, groupNameTest, 1, 2)
+                        checkDuplicate("real/group_name_and_invitation_code", groupNameValue.value, groupNameTest, 1, 2)
                     }
                 }
                 TextField(

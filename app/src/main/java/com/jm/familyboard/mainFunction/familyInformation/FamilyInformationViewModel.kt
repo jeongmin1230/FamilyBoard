@@ -14,31 +14,9 @@ import com.jm.familyboard.datamodel.FamilyInformationResponse
 
 class FamilyInformationViewModel: ViewModel() {
     val uid = mutableStateOf("")
-    val existRepresentative = mutableIntStateOf(0)
     var familyComposition = mutableStateOf(listOf<FamilyInformationResponse>())
     private val database = FirebaseDatabase.getInstance()
-    private val representativeReference = database.getReference("real/service/${User.groupName}")
     private val familyCompositionReference = database.getReference("real/service/${User.groupName}/composition")
-
-    fun findRepresentativeUid(context: Context) {
-        val valueEventListener = object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                val representativeName = snapshot.child(context.getString(R.string.family_representative))
-                if(representativeName.exists()) {
-                    uid.value = representativeName.value.toString()
-                    existRepresentative.intValue = 1
-                }
-                else {
-                    existRepresentative.intValue = 0
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-            }
-        }
-        representativeReference.addListenerForSingleValueEvent(valueEventListener)
-    }
-
     fun loadComposition(context: Context) {
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {

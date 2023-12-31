@@ -1,5 +1,6 @@
 package com.jm.familyboard
 
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -11,6 +12,7 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -19,6 +21,10 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.mainFunction.announcement.AnnouncementScreen
 import com.jm.familyboard.mainFunction.familyInformation.FamilyInformationScreen
 import com.jm.familyboard.mainFunction.myInformation.MyInformationScreen
@@ -47,6 +53,7 @@ class MainActivity : ComponentActivity() {
 fun MainScreen() {
     val context = LocalContext.current
     val navController = rememberNavController()
+
     NavHost(navController, startDestination = stringResource(R.string.main)) {
         composable(context.getString(R.string.main)) {
             Column {

@@ -68,7 +68,7 @@ class AnnouncementViewModel: ViewModel() {
                 ref.child(context.getString(R.string.database_content)).setValue(vmContent.value)
                 ref.child(context.getString(R.string.database_title)).setValue(vmTitle.value)
                 ref.child(context.getString(R.string.database_date)).setValue(vmWriteDate.value)
-                ref.child(context.getString(R.string.database_no)).setValue(nextNo)
+                ref.child(context.getString(R.string.database_no)).setValue(if(isModify)writeNo else nextNo)
                 ref.child(context.getString(R.string.database_writer_uid)).setValue(User.uid)
                 ref.child(context.getString(R.string.database_writer)).setValue(User.name)
                 currentNavController.popBackStack()

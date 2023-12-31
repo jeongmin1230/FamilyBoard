@@ -23,6 +23,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
@@ -42,37 +43,37 @@ fun FamilyInformationScreen(mainNavController: NavHostController) {
     val context = LocalContext.current
     val familyInformationArray = stringArrayResource(id = R.array.family_information_nav)
     val familyInformationViewModel = FamilyInformationViewModel()
-    val representativeUid = remember { familyInformationViewModel.uid }
     val familyCompositionList = remember { familyInformationViewModel.familyComposition }
     val currentNavController = rememberNavController()
-    LaunchedEffect(true) {
-        familyInformationViewModel.findRepresentativeUid(context)
-        familyInformationViewModel.loadComposition(context)
-    }
+    LaunchedEffect(true) { familyInformationViewModel.loadComposition(context) }
     NavHost(currentNavController, startDestination = familyInformationArray[1]) {
         composable(familyInformationArray[1]) {
-            Column(modifier = Modifier.fillMaxSize()) {
-                AppBar(User.uid == representativeUid.value, familyInformationArray[0], if(User.uid == representativeUid.value) R.drawable.ic_family_information else null, { currentNavController.navigate(familyInformationArray[3]) }) { mainNavController.popBackStack() }
+            Column(modifier = Modifier
+                .background(Color.White)
+                .fillMaxSize()) {
+                AppBar(User.uid == User.representativeUid, familyInformationArray[0], if(User.uid == User.representativeUid) R.drawable.ic_family_information else null, { currentNavController.navigate(familyInformationArray[3]) }) { mainNavController.popBackStack() }
                 Column {
-                    HowToUseColumn(text = stringResource(id = R.string.family_information_representative_is_me))
+                    if(User.uid == User.representativeUid) HowToUseColumn(text = stringResource(id = R.string.family_information_representative_is_me))
                     Spacer(modifier = Modifier.height(10.dp))
                     familyCompositionList.value.forEach { info ->
                         Column(modifier = Modifier
                             .fillMaxWidth()
                             .padding(all = 10.dp)
-                            .background(Color(0xFFD59DAB))
+                            .background(Color.White)
                         ) {
                             TextComposable(
-                                text = if(info.uid == representativeUid.value) "${info.name} (${stringResource(id = R.string.representative)})" else info.name,
+                                text = if(info.uid == User.representativeUid) "${info.name} (${stringResource(id = R.string.representative)})" else info.name,
                                 style = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
+                                fontWeight = FontWeight.Bold,
                                 modifier = Modifier
                                     .padding(start = 6.dp, top = 6.dp)
                                     .align(Alignment.Start)
                             )
                             Spacer(modifier = Modifier.height(6.dp))
                             TextComposable(
-                                text = if(info.email == User.email) stringResource(id = R.string.me) else info.roles,
+                                text = if(info.uid == User.uid) stringResource(id = R.string.me) else info.roles,
                                 style = MaterialTheme.typography.bodyMedium.copy(color = Color.DarkGray),
+                                fontWeight = FontWeight.Bold,
                                 modifier = Modifier
                                     .padding(bottom = 6.dp, end = 6.dp)
                                     .align(Alignment.End)
@@ -84,17 +85,17 @@ fun FamilyInformationScreen(mainNavController: NavHostController) {
         }
         composable(familyInformationArray[3]) {
             Column(modifier = Modifier
-                .background(Color(0XFFFEE1E8))
+                .background(Color.White)
                 .fillMaxSize()) {
                 AppBar(false, familyInformationArray[2], null, {}) { currentNavController.popBackStack() }
-                RepresentativeSelection(currentNavController, representativeUid, familyCompositionList)
+                RepresentativeSelection(currentNavController, familyCompositionList)
             }
         }
     }
 }
 
 @Composable
-fun RepresentativeSelection(currentNavController: NavHostController, representativeUid: MutableState<String>, familyComposition: MutableState<List<FamilyInformationResponse>>) {
+fun RepresentativeSelection(currentNavController: NavHostController, familyComposition: MutableState<List<FamilyInformationResponse>>) {
     val uid = remember { mutableStateOf("") }
     val enabled = remember { mutableStateOf(false) }
 
@@ -107,14 +108,14 @@ fun RepresentativeSelection(currentNavController: NavHostController, representat
 
             Spacer(modifier = Modifier.height(20.dp))
             familyComposition.value.forEachIndexed { index, info ->
-                isSelect.value = info.uid.trim() == representativeUid.value
+                isSelect.value = info.uid.trim() == User.representativeUid
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .background(if (index % 2 == 0) Color(0xFFD59DAB) else Color.White)
                         .fillMaxWidth()
                         .padding(horizontal = 4.dp, vertical = 20.dp)
-                        .clickable(interactionSource = MutableInteractionSource(), indication = null) { representativeUid.value = info.uid}
+                        .clickable(interactionSource = MutableInteractionSource(), indication = null) { User.representativeUid = info.uid}
                 ) {
                     RadioButton(
                         selected = isSelect.value,
@@ -124,6 +125,7 @@ fun RepresentativeSelection(currentNavController: NavHostController, representat
                     TextComposable(
                         text = if(User.uid == info.uid) " ${info.name}(${stringResource(id = R.string.me)})" else info.name,
                         style = MaterialTheme.typography.bodyMedium.copy(if(index % 2 == 0) Color.White else Color.Black),
+                        fontWeight = FontWeight.Normal,
                         modifier = Modifier
                     )
                 }
@@ -134,8 +136,7 @@ fun RepresentativeSelection(currentNavController: NavHostController, representat
             color = Color(0xFFD59DAB),
             text = stringResource(id = R.string.selection),
             modifier = Modifier.fillMaxWidth()) {
-            FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}")
-                .child("representative").setValue(representativeUid.value)
+            FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").child("representative").setValue(User.representativeUid)
             currentNavController.popBackStack()
         }
     }

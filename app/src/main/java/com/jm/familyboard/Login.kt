@@ -1,6 +1,7 @@
 package com.jm.familyboard
 
 import android.app.Activity
+import android.content.Context
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -38,6 +39,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -52,6 +54,10 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.reusable.Loading
 import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.getStoredUserEmail
@@ -114,7 +120,7 @@ fun FirstScreen() {
             MainScreen()
         }
         composable(context.getString(R.string.find_password)) {
-            FindIdAndPasswordScreen(navController)
+            ResetPassword(navController)
         }
     }
 }
@@ -171,6 +177,7 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
                     TextComposable(
                         text = stringResource(id = R.string.enter_password),
                         style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray),
+                        fontWeight = FontWeight.Light,
                         modifier = Modifier
                     )
                 },
@@ -214,12 +221,14 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
                 TextComposable(
                     text = stringResource(id = R.string.find_password),
                     style = MaterialTheme.typography.bodyMedium.copy(Color.Black, textAlign = TextAlign.Center),
+                    fontWeight = FontWeight.Light,
                     modifier = Modifier
                         .clickable(interactionSource = MutableInteractionSource(), indication = null) { navController.navigate(context.getString(R.string.find_password)) }
                         .weight(1f))
                 TextComposable(
                     text = stringResource(id = R.string.sign_up),
                     style = MaterialTheme.typography.bodyMedium.copy(Color.Black, textAlign = TextAlign.Center),
+                    fontWeight = FontWeight.Light,
                     modifier = Modifier
                         .clickable(interactionSource = MutableInteractionSource(), indication = null) { navController.navigate(context.getString(R.string.title_activity_sign_up)) }
                         .weight(1f))
@@ -229,4 +238,21 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
             Loading(loading)
         }
     }
+}
+
+fun findRepresentativeUid(context: Context) {
+    val representativeReference = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}")
+    val valueEventListener = object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            val representative = snapshot.child(context.getString(R.string.family_representative))
+            if(representative.exists()) {
+                println("exist : ${representative.value}")
+                User.representativeUid = representative.value.toString()
+            }
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+        }
+    }
+    representativeReference.addListenerForSingleValueEvent(valueEventListener)
 }
