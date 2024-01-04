@@ -63,8 +63,8 @@ fun FamilyInformationScreen(mainNavController: NavHostController) {
                         ) {
                             TextComposable(
                                 text = if(info.uid == User.representativeUid) "${info.name} (${stringResource(id = R.string.representative)})" else info.name,
-                                style = MaterialTheme.typography.bodyLarge.copy(color = Color.Black),
-                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.labelLarge.copy(color = Color.Black),
+                                fontWeight = FontWeight.Normal,
                                 modifier = Modifier
                                     .padding(start = 6.dp, top = 6.dp)
                                     .align(Alignment.Start)
@@ -72,8 +72,8 @@ fun FamilyInformationScreen(mainNavController: NavHostController) {
                             Spacer(modifier = Modifier.height(6.dp))
                             TextComposable(
                                 text = if(info.uid == User.uid) stringResource(id = R.string.me) else info.roles,
-                                style = MaterialTheme.typography.bodyMedium.copy(color = Color.DarkGray),
-                                fontWeight = FontWeight.Bold,
+                                style = MaterialTheme.typography.labelLarge.copy(color = Color.DarkGray),
+                                fontWeight = FontWeight.Normal,
                                 modifier = Modifier
                                     .padding(bottom = 6.dp, end = 6.dp)
                                     .align(Alignment.End)

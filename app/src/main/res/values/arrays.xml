@@ -17,7 +17,7 @@
         <item>choose_family_representative</item>
     </array>
     <array name="my_information_nav">
-        <item>나의 정보</item>
+        <item>정보</item>
         <item>my_information</item>
         <item>비밀번호 확인</item>
         <item>confirm_current_password</item>

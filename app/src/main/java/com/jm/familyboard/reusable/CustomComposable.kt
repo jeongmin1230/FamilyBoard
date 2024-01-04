@@ -44,6 +44,8 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.Font
 import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontStyle
@@ -59,6 +61,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.google.firebase.database.core.Platform
 import com.jm.familyboard.User
 
 val notoSansKr = FontFamily(
@@ -88,10 +91,16 @@ fun Loading(loading: MutableState<Boolean>) {
 }
 
 @Composable
-fun TextComposable(text: String, style: androidx.compose.ui.text.TextStyle, fontWeight: FontWeight, modifier: Modifier) {
+fun TextComposable(text: String, style: TextStyle, fontWeight: FontWeight, modifier: Modifier) {
     Text(
         text = text,
-        style = style,
+        style = style.merge(
+            TextStyle(
+                platformStyle = PlatformTextStyle(
+                    includeFontPadding = false
+                )
+            )
+        ),
         fontWeight = fontWeight,
         fontFamily = notoSansKr,
         modifier = modifier
@@ -114,15 +123,15 @@ fun AppBar(enabled: Boolean, screenName: String, imageButtonSource: Int?, imageF
                 ) { onClickBack() }
                 .padding(start = 10.dp)
         )
+        TextComposable(
+            text = screenName,
+            style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+            fontWeight = FontWeight.Normal,
+            modifier = Modifier
+                .padding(start = 10.dp)
+                .weight(1f)
+        )
         if(screenName != stringResource(id = R.string.sign_up)) {
-            TextComposable(
-                text = screenName,
-                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier
-                    .padding(start = 10.dp)
-                    .weight(1f)
-            )
             imageButtonSource?.let { ImageVector.vectorResource(it) }?.let {
                 Image(
                     imageVector = it,
@@ -172,7 +181,7 @@ fun HowToUseColumn(text: String) {
         TextComposable(
             text = text,
             style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
-            fontWeight = FontWeight.Bold,
+            fontWeight = FontWeight.Normal,
             modifier = Modifier
         )
     }
@@ -293,7 +302,13 @@ fun EnterInfoSingleColumn(essential: Boolean, mean: String, tfValue: MutableStat
         TextField(
             value = tfValue.value,
             onValueChange = { tfValue.value = it},
-            textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+            textStyle = TextStyle(
+                fontFamily = notoSansKr,
+                platformStyle = PlatformTextStyle(
+                    includeFontPadding = false
+                ),
+                color = Color.Black
+            )/*MaterialTheme.typography.bodyMedium.copy(fontFamily = notoSansKr, color = Color.Black)*/,
             placeholder = { TextFieldPlaceholderOrSupporting(isPlaceholder = true, text = "$mean ${stringResource(id = R.string.sign_up_placeholder)}", correct = true)},
             interactionSource = MutableInteractionSource(),
             visualTransformation = visualTransformation,
@@ -317,7 +332,13 @@ fun EnterInfoMultiColumn(mean: String, enabled: Boolean, tfValue: MutableState<S
         TextField(
             value = tfValue.value,
             onValueChange = { tfValue.value = it},
-            textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+            textStyle = TextStyle(
+                fontFamily = notoSansKr,
+                platformStyle = PlatformTextStyle(
+                    includeFontPadding = false
+                ),
+                color = Color.Black
+            ),
             placeholder = { TextFieldPlaceholderOrSupporting(isPlaceholder = true, text = "$mean ${stringResource(id = R.string.sign_up_placeholder)}", correct = true)},
             interactionSource = MutableInteractionSource(),
             visualTransformation = visualTransformation,

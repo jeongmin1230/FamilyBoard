@@ -43,6 +43,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavHostController
@@ -58,11 +59,13 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.jm.familyboard.reusable.EnterInfoSingleColumn
 import com.jm.familyboard.reusable.Loading
 import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.getStoredUserEmail
 import com.jm.familyboard.reusable.getStoredUserPassword
 import com.jm.familyboard.reusable.loginUser
+import com.jm.familyboard.reusable.textFieldKeyboard
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
 
 class Login : ComponentActivity() {
@@ -144,76 +147,36 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
                     progress = progress,
                 )
             }
-            TextField(
-                value = email.value,
-                singleLine = true,
-                onValueChange = {email.value = it},
-                textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-                placeholder = {
-                    Text(text = stringResource(id = R.string.enter_email),
-                        style = MaterialTheme.typography.bodyMedium.copy(Color.Gray))
-                },
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = Color.LightGray,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent
-                ),
-                shape = RoundedCornerShape(12.dp),
+            EnterInfoSingleColumn(
+                essential = false,
+                mean = stringResource(id = R.string.enter_email),
+                tfValue = email,
+                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Email),
+                visualTransformation = VisualTransformation.None,
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
-                    .fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Next)
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            TextField(
-                value = password.value,
-                singleLine = true,
-                onValueChange = {password.value = it},
-                textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-                placeholder = {
-                    TextComposable(
-                        text = stringResource(id = R.string.enter_password),
-                        style = MaterialTheme.typography.bodyMedium.copy(color = Color.Gray),
-                        fontWeight = FontWeight.Light,
-                        modifier = Modifier
-                    )
-                },
+                    .fillMaxWidth()
+            ) {}
+            EnterInfoSingleColumn(
+                essential = false,
+                mean = stringResource(id = R.string.enter_password),
+                tfValue = password,
+                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
                 visualTransformation = PasswordVisualTransformation('*'),
-                colors = TextFieldDefaults.textFieldColors(
-                    containerColor = Color.LightGray,
-                    focusedIndicatorColor = Color.Transparent,
-                    unfocusedIndicatorColor = Color.Transparent,
-                    disabledIndicatorColor = Color.Transparent
-                ),
-                shape = RoundedCornerShape(12.dp),
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
-                    .fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Text,
-                    imeAction = ImeAction.Done
-                )
-            )
-            Spacer(modifier = Modifier.height(20.dp))
-            Button(
-                enabled = email.value.isNotEmpty() && password.value.isNotEmpty(),
-                onClick = {
-                    loading.value = true
-                    loginUser(context as Activity, navController, email, password, loading) },
+                    .fillMaxWidth()
+            ) {}
+            Spacer(modifier = Modifier.height(10.dp))
+            CompleteButton(
+                isEnable = email.value.isNotEmpty() && password.value.isNotEmpty(),
+                text = stringResource(id = R.string.login),
+                color = Color.Blue.copy(0.2f),
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
-                    .fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = MaterialTheme.colorScheme.primary,
-                    disabledContainerColor = Color.LightGray,
-                )) {
-                Text(
-                    text = stringResource(id = R.string.login),
-                    style = MaterialTheme.typography.bodyMedium.copy(if(email.value.isNotEmpty() && password.value.isNotEmpty()) Color.White else Color.Black)
-                    )
+                    .fillMaxWidth()) {
+                loading.value = true
+                loginUser(context as Activity, navController, email, password, loading)
             }
             Spacer(modifier = Modifier.height(20.dp))
             Row(verticalAlignment = Alignment.CenterVertically,
@@ -223,14 +186,20 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
                     style = MaterialTheme.typography.bodyMedium.copy(Color.Black, textAlign = TextAlign.Center),
                     fontWeight = FontWeight.Light,
                     modifier = Modifier
-                        .clickable(interactionSource = MutableInteractionSource(), indication = null) { navController.navigate(context.getString(R.string.find_password)) }
+                        .clickable(
+                            interactionSource = MutableInteractionSource(),
+                            indication = null
+                        ) { navController.navigate(context.getString(R.string.find_password)) }
                         .weight(1f))
                 TextComposable(
                     text = stringResource(id = R.string.sign_up),
                     style = MaterialTheme.typography.bodyMedium.copy(Color.Black, textAlign = TextAlign.Center),
                     fontWeight = FontWeight.Light,
                     modifier = Modifier
-                        .clickable(interactionSource = MutableInteractionSource(), indication = null) { navController.navigate(context.getString(R.string.title_activity_sign_up)) }
+                        .clickable(
+                            interactionSource = MutableInteractionSource(),
+                            indication = null
+                        ) { navController.navigate(context.getString(R.string.title_activity_sign_up)) }
                         .weight(1f))
             }
         }
@@ -246,7 +215,6 @@ fun findRepresentativeUid(context: Context) {
         override fun onDataChange(snapshot: DataSnapshot) {
             val representative = snapshot.child(context.getString(R.string.family_representative))
             if(representative.exists()) {
-                println("exist : ${representative.value}")
                 User.representativeUid = representative.value.toString()
             }
         }

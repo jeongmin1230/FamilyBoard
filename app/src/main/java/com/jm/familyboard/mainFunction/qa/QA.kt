@@ -97,7 +97,6 @@ fun Q_AScreen(mainNavController: NavHostController) {
                             answer = qa.no.answerContent.content,
                             writerUid = qa.no.writer.uid
                         ) {
-                            println("qa.no.no : ${qa.no.no}")
                             qaViewModel.vmQuestionContent.value = qa.no.questionContent.content
                             qaViewModel.vmQuestionTitle.value = qa.no.questionTitle
                             qaViewModel.vmAnswerContent.value = qa.no.answerContent.content
@@ -167,7 +166,7 @@ fun WriteQuestionScreen(questionTitle: MutableState<String>, questionContent: Mu
                         .padding(horizontal = 10.dp)
                 )
                 TextComposable(
-                    text = "${stringResource(R.string.first_register_date)} $questionDate",
+                    text = "${stringResource(R.string.register_date)} $questionDate",
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Black),
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier
