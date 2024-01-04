@@ -7,8 +7,8 @@
     <string name="first">first</string>
     <string name="login">로그인</string>
 
-    <string name="enter_email">email 입력</string>
-    <string name="enter_password">password 입력</string>
+    <string name="enter_email">이메일</string>
+    <string name="enter_password">비밀번호</string>
     <string name="try_again">로그인을 다시 시도 해 주세요</string>
 
     <string name="find_password">비밀번호 찾기</string>
@@ -125,13 +125,16 @@
     <string name="my_group_name">가족 그룹명</string>
     <string name="my_invitation_code">초대 코드</string>
     <string name="copy_my_invitation_code">코드 복사</string>
+    <string name="app_information">앱 정보</string>
+    <string name="app_version_name">버전</string>
+    <string name="account_information">계정 정보</string>
+    <string name="logout">로그아웃</string>
+    <string name="withdrawal">탈퇴하기</string>
     <string name="my_information_edit_complete">정보 수정 완료</string>
     <string name="my_information_edit_success">정보 수정이 완료되었습니다.</string>
 
-    <string name="logout">로그아웃</string>
     <string name="do_logout">로그아웃 하시겠습니까?</string>
     <string name="done_logout">로그아웃 했습니다.</string>
-    <string name="withdrawal">탈퇴하기</string>
     <string name="do_withdrawal">정말 탈퇴 하시겠습니까?\n해당 아이디로 작성한 모든 글이 삭제됩니다.</string>
     <string name="done_withdrawal">이용해 주셔서 감사합니다. 회원 탈퇴 되었습니다.</string>
 

@@ -33,6 +33,7 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -48,6 +49,7 @@ import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.NewPasswordSupportingText
 import com.jm.familyboard.reusable.ConfirmPasswordSupportingText
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
+import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
 import com.jm.familyboard.reusable.WhatMean
 import com.jm.familyboard.reusable.checkDuplicate
@@ -284,14 +286,14 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
 @Composable
 fun Type(first: MutableState<Boolean>, second: MutableState<Boolean>, click: () -> Unit) {
     Row(modifier = Modifier
-        .padding(start = 10.dp, bottom = 10.dp)
-        .clickable { click() }) {
+        .padding(start = 10.dp, bottom = 10.dp)) {
         Text(
             text = stringResource(id = R.string.sign_up_yes_invite_code),
             style = MaterialTheme.typography.bodySmall.copy(if(first.value) Color.Black else Color.LightGray),
             modifier = Modifier
                 .padding(end = 4.dp)
                 .clickable {
+                    click()
                     first.value = true
                     second.value = false
                 }
@@ -302,6 +304,7 @@ fun Type(first: MutableState<Boolean>, second: MutableState<Boolean>, click: () 
             modifier = Modifier
                 .padding(start = 4.dp)
                 .clickable {
+                    click()
                     first.value = false
                     second.value = true
                 }
@@ -318,9 +321,11 @@ fun CompleteButton(isEnable: Boolean, color: Color, text: String, modifier: Modi
         shape = RectangleShape,
         modifier = modifier.height(48.dp),
     ) {
-        Text(
+        TextComposable(
             text = text,
-            style = MaterialTheme.typography.bodyMedium.copy(color = if(!isEnable) Color.White else Color.Black, textAlign = TextAlign.Center)
+            style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black, textAlign = TextAlign.Center),
+            fontWeight = FontWeight.Normal,
+            modifier = Modifier
         )
     }
 }

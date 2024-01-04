@@ -69,7 +69,7 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                     TextComposable(
                         text = stringResource(id = R.string.empty_screen),
                         style = MaterialTheme.typography.titleLarge.copy(color = Color.Black),
-                        fontWeight = FontWeight.Bold,
+                        fontWeight = FontWeight.Normal,
                         modifier = Modifier
                     )
                 } else {

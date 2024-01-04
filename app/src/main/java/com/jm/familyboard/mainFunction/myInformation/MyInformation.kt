@@ -16,6 +16,7 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
@@ -43,6 +44,7 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.jm.familyboard.BuildConfig
 import com.jm.familyboard.CompleteButton
 import com.jm.familyboard.R
 import com.jm.familyboard.User
@@ -50,7 +52,6 @@ import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.ConfirmDialog
 import com.jm.familyboard.reusable.ConfirmPasswordSupportingText
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
-import com.jm.familyboard.reusable.HowToUseColumn
 import com.jm.familyboard.reusable.NewPasswordSupportingText
 import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.WhatMean
@@ -100,18 +101,39 @@ fun MyInformation(invitationCode: MutableState<String>, logoutAction: () -> Unit
     val confirmLogout = remember { mutableStateOf(false) }
     val confirmWithdrawal = remember { mutableStateOf(false) }
     invitationCode.value = invitationCode.value.ifEmpty { stringResource(id = R.string.please_set_representative) }
-    if(User.uid == User.representativeUid) HowToUseColumn(text = stringResource(id = R.string.my_information_for_representative))
     Column(Modifier.verticalScroll(rememberScrollState())) {
-        RowLayout(click = false, mean = stringResource(id = R.string.my_name), info = User.name)
-        RowLayout(click = false, mean = stringResource(id = R.string.my_email), info = User.email)
-        RowLayout(click = false, mean = stringResource(id = R.string.my_group_name), info = User.groupName)
-        RowLayout(click = false, mean = stringResource(id = R.string.my_roles), info = User.roles)
+        Spacer(modifier = Modifier.height(10.dp))
+
+        WhatMean(mean = stringResource(id = R.string.app_information), essential = false)
+        RowLayout(mean = stringResource(id = R.string.app_version_name), info = BuildConfig.VERSION_NAME) {}
+
+        Divider(Modifier.background(Color.Gray))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        WhatMean(mean = stringResource(id = R.string.my_information), essential = false)
+        RowLayout(mean = stringResource(id = R.string.my_name), info = User.name){}
+        RowLayout(mean = stringResource(id = R.string.my_email), info = User.email){}
+        RowLayout(mean = stringResource(id = R.string.my_group_name), info = User.groupName){}
+        RowLayout(mean = stringResource(id = R.string.my_roles), info = User.roles){}
         if(User.uid == User.representativeUid) {
-            RowLayout(click = true, mean = stringResource(id = R.string.my_invitation_code), info = invitationCode.value)
+            var copiedToClipboard by remember { mutableStateOf(false) }
+            val clipboardManager = getSystemService(LocalContext.current, ClipboardManager::class.java)
+            RowLayout(mean = stringResource(id = R.string.my_invitation_code), info = invitationCode.value) {
+                copiedToClipboard = try {
+                    clipboardManager?.setPrimaryClip(ClipData.newPlainText("Label", invitationCode.value))
+                    true
+                } catch (e: Exception) {
+                    false
+                }
+            }
         }
-        Spacer(modifier = Modifier.height(30.dp))
-        ConfirmText(false, confirmText = stringResource(id = R.string.logout)) { confirmLogout.value = true }
-        ConfirmText(true, confirmText = stringResource(id = R.string.withdrawal)) { confirmWithdrawal.value = true }
+
+        Divider(Modifier.background(Color.Gray))
+        Spacer(modifier = Modifier.height(10.dp))
+
+        WhatMean(mean = stringResource(id = R.string.account_information), essential = false)
+        RowLayout(mean = "", info = stringResource(id = R.string.logout)) { confirmLogout.value = true }
+        RowLayout(mean = "", info = stringResource(id = R.string.withdrawal)) { confirmWithdrawal.value = true }
     }
     if(confirmLogout.value) {
         Logout(confirmLogout) { logoutAction() }
@@ -247,10 +269,7 @@ fun Withdrawal(confirmWithdrawal: MutableState<Boolean>, withdrawalAction: () ->
 }
 
 @Composable
-fun RowLayout(click: Boolean, mean: String, info: String) {
-    var copiedToClipboard by remember { mutableStateOf(false) }
-    val clipboardManager = getSystemService(LocalContext.current, ClipboardManager::class.java)
-
+fun RowLayout(mean: String, info: String, onClick: () -> Unit) {
     Row(modifier = Modifier
         .padding(all = 10.dp)
         .fillMaxSize()) {
@@ -258,23 +277,14 @@ fun RowLayout(click: Boolean, mean: String, info: String) {
             text = mean,
             style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
             fontWeight = FontWeight.Normal,
-            modifier = Modifier.padding(end = 20.dp)
+            modifier = if(mean.isNotEmpty()) Modifier.padding(end = 20.dp) else Modifier.padding(0.dp)
         )
         TextComposable(
             text = info,
             style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
             fontWeight = FontWeight.Normal,
             modifier = Modifier
-                .clickable {
-                    if(click) {
-                    copiedToClipboard = try {
-                        clipboardManager?.setPrimaryClip(ClipData.newPlainText("Label", info))
-                        true
-                    } catch (e: Exception) {
-                        false
-                    }
-                    }
-                }
+                .clickable { onClick() }
         )
     }
 }
