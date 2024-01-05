@@ -3,7 +3,6 @@ package com.jm.familyboard.mainFunction.myInformation
 import android.content.Context
 import android.content.Intent
 import android.widget.Toast
-import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
@@ -13,7 +12,6 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.Login
-import com.jm.familyboard.MainActivity
 import com.jm.familyboard.R
 import com.jm.familyboard.User
 import com.jm.familyboard.reusable.removeUserCredentials
@@ -86,11 +84,30 @@ class MyInformationViewModel: ViewModel() {
         context.startActivity(intent)
     }
     fun withdrawal(context: Context) {
-        announcementRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        deleteMember.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
+                println("snapshot childrenCount : ${snapshot.childrenCount}")
                 for(childSnapshot in snapshot.children) {
                     val registrant = childSnapshot.child(context.getString(R.string.database_registrant)).getValue(String::class.java)
                     if(registrant == User.uid) childSnapshot.ref.removeValue()
+                }
+                if(snapshot.childrenCount < 1) {
+                    FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").removeValue()
+                    FirebaseDatabase.getInstance().getReference("real/group_name_and_invitation_code").child(User.groupName).removeValue()
+                }
+            }
+
+            override fun onCancelled(error: DatabaseError) {
+            }
+
+        })
+        announcementRef.addListenerForSingleValueEvent(object : ValueEventListener {
+            override fun onDataChange(snapshot: DataSnapshot) {
+                for(childSnapshot in snapshot.children) {
+                    val writerUid = childSnapshot.child(context.getString(R.string.database_writer_uid)).getValue(String::class.java) ?: ""
+                    if(User.uid == writerUid) {
+                        FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement/${childSnapshot.key}").removeValue()
+                    }
                 }
             }
 
@@ -101,9 +118,16 @@ class MyInformationViewModel: ViewModel() {
         qaRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 for(childSnapshot in snapshot.children) {
-                    val registrant = childSnapshot.child(context.getString(R.string.database_registrant)).child(context.getString(
-                        R.string.database_uid)).getValue(String::class.java)
-                    if(registrant == User.uid) childSnapshot.ref.removeValue()
+                    val writerRef = childSnapshot.child(context.getString(R.string.database_writer))
+                    val writer = writerRef.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
+                    val answerContentRef = childSnapshot.child(context.getString(R.string.database_answer_content)).child(context.getString(R.string.database_writer))
+                    val answerUid = answerContentRef.getValue(String::class.java) ?: ""
+                    if(answerUid == User.uid) {
+                        qaRef.child(context.getString(R.string.database_flag)).setValue(false)
+                        FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/q_a/$answerContentRef").removeValue()
+                    } else if(writer == User.uid){
+                        FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/q_a/${childSnapshot.key}").removeValue()
+                    }
                 }
             }
 
@@ -113,7 +137,7 @@ class MyInformationViewModel: ViewModel() {
         })
         FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").child(context.getString(
             R.string.family_representative)).removeValue()
-        FirebaseDatabase.getInstance().getReference("real/user/email").child(User.email.replace("@", "_".replace(".","_"))).removeValue()
+        FirebaseDatabase.getInstance().getReference("real/user/email").child(User.email.replace("@", "_").replace(".","_")).removeValue()
         deleteMember.removeValue()
         userUidRef.removeValue()
             .addOnSuccessListener {

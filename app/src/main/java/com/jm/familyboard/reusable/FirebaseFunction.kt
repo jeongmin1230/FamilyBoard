@@ -66,7 +66,7 @@ fun generateDB(path: String, groupName: String, email: String, name: String, rol
 fun registerDatabase(groupNameTest: MutableState<Int>, groupNameValue: MutableState<String>, email: String, name: String, roles: String) {
     val uid = FirebaseAuth.getInstance().currentUser?.uid
     val emailRef = FirebaseDatabase.getInstance().getReference("real/user/email")
-    val groupNameRef = FirebaseDatabase.getInstance().getReference("real/user/real_user_group_name")
+    val groupNameRef = FirebaseDatabase.getInstance().getReference("real/group_name_and_invitation_code")
     emailRef.child(email.replace("@", "_").replace(".", "_")).setValue("email")
     checkDuplicate("real/group_name_and_invitation_code", groupNameValue.value, groupNameTest, 1, 2)
     if(groupNameTest.value == 2) groupNameRef.child(groupNameValue.value).setValue(generateInvitationCode())

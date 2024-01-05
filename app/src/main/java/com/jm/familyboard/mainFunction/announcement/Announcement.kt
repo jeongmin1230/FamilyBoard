@@ -132,7 +132,7 @@ fun RegisterNotice(vmModify: Boolean, vmTitle: MutableState<String>, vmContent: 
                     mean = stringResource(R.string.content),
                     tfValue = vmContent,
                     enabled = true,
-                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
+                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Default, keyboardType = KeyboardType.Text),
                     visualTransformation = VisualTransformation.None,
                     modifier = Modifier
                         .fillMaxWidth()

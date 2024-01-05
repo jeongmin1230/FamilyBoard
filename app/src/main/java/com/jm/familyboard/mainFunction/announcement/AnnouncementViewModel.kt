@@ -44,6 +44,8 @@ class AnnouncementViewModel: ViewModel() {
                     val writer = childSnapshot.child(context.getString(R.string.database_writer)).getValue(String::class.java) ?: ""
                     val writerUid = childSnapshot.child(context.getString(R.string.database_writer_uid)).getValue(String::class.java) ?: ""
 
+                    if(User.uid == writerUid) println("User.uid == writerUid ${childSnapshot.key}")
+
                     val announcement = AnnouncementResponse(content, date, no, title, writer, writerUid)
                     vmTitle.value = title
                     vmContent.value = content

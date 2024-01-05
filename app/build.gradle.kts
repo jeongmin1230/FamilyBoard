@@ -12,8 +12,8 @@ android {
         applicationId = "com.jm.familyboard"
         minSdk = 24
         targetSdk = 34
-        versionCode = 1
-        versionName = "1.0"
+        versionCode = 4
+        versionName = "1.0.4"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -28,13 +28,13 @@ android {
                 getDefaultProguardFile("proguard-android-optimize.txt"),
                 "proguard-rules.pro"
             )
+            signingConfig = signingConfigs.getByName("debug")
         }
         debug {
             //noinspection GradlePath
             versionNameSuffix = "-debug"
             isMinifyEnabled = false
             buildConfigField("String", "LOG_LEVEL", "\"DEBUG\"")
-            resValue("string", "google_services_json", "src/debug/google-services.json")
         }
     }
     compileOptions {
