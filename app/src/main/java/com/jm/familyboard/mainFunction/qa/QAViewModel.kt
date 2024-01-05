@@ -117,6 +117,7 @@ class QAViewModel: ViewModel() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 answerRef.child(context.getString(R.string.database_flag)).setValue(true)
                 val answerContentRef = answerRef.child(context.getString(R.string.database_answer_content))
+                answerContentRef.child(context.getString(R.string.database_uid)).setValue(User.uid)
                 answerContentRef.child(context.getString(R.string.database_content)).setValue(vmAnswerContent.value)
                 answerContentRef.child(context.getString(R.string.database_date)).setValue(vmAnswerDate.value)
                 currentNavController.popBackStack()

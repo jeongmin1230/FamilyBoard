@@ -10,6 +10,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.material3.Divider
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.runtime.Composable
@@ -51,7 +52,7 @@ fun FamilyInformationScreen(mainNavController: NavHostController) {
             Column(modifier = Modifier
                 .background(Color.White)
                 .fillMaxSize()) {
-                AppBar(User.uid == User.representativeUid, familyInformationArray[0], if(User.uid == User.representativeUid) R.drawable.ic_family_information else null, { currentNavController.navigate(familyInformationArray[3]) }) { mainNavController.popBackStack() }
+                AppBar(User.uid == User.representativeUid || User.representativeUid.isEmpty(), familyInformationArray[0], if(User.uid == User.representativeUid || User.representativeUid.isEmpty()) R.drawable.ic_family_information else null, { currentNavController.navigate(familyInformationArray[3]) }) { mainNavController.popBackStack() }
                 Column {
                     if(User.uid == User.representativeUid) HowToUseColumn(text = stringResource(id = R.string.family_information_representative_is_me))
                     Spacer(modifier = Modifier.height(10.dp))
@@ -79,6 +80,7 @@ fun FamilyInformationScreen(mainNavController: NavHostController) {
                                     .align(Alignment.End)
                             )
                         }
+                        Divider()
                     }
                 }
             }
@@ -108,14 +110,20 @@ fun RepresentativeSelection(currentNavController: NavHostController, familyCompo
 
             Spacer(modifier = Modifier.height(20.dp))
             familyComposition.value.forEachIndexed { index, info ->
-                isSelect.value = info.uid.trim() == User.representativeUid
+                isSelect.value = selectedOption.value.value == info.uid//info.uid.trim() == User.representativeUid
                 Row(
                     verticalAlignment = Alignment.CenterVertically,
                     modifier = Modifier
                         .background(if (index % 2 == 0) Color(0xFFD59DAB) else Color.White)
                         .fillMaxWidth()
                         .padding(horizontal = 4.dp, vertical = 20.dp)
-                        .clickable(interactionSource = MutableInteractionSource(), indication = null) { User.representativeUid = info.uid}
+                        .clickable(
+                            interactionSource = MutableInteractionSource(),
+                            indication = null
+                        ) {
+                            selectedOption.value.value =
+                                info.uid/*User.representativeUid = info.uid*/
+                        }
                 ) {
                     RadioButton(
                         selected = isSelect.value,
@@ -132,11 +140,12 @@ fun RepresentativeSelection(currentNavController: NavHostController, familyCompo
             }
         }
         CompleteButton(
-            isEnable = true,
+            isEnable = enabled.value,
             color = Color(0xFFD59DAB),
             text = stringResource(id = R.string.selection),
             modifier = Modifier.fillMaxWidth()) {
-            FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").child("representative").setValue(User.representativeUid)
+            User.representativeUid = uid.value
+            FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").child("representative").setValue(uid.value)
             currentNavController.popBackStack()
         }
     }

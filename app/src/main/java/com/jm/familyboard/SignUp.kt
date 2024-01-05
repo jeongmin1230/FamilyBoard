@@ -84,7 +84,6 @@ fun SignUpScreen(loginNavController: NavHostController) {
                     val intent = Intent(context, Login::class.java)
                     intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                     context.startActivity(intent)
-                    loginNavController.navigate(context.getString(R.string.first))
                 }
             }
         }

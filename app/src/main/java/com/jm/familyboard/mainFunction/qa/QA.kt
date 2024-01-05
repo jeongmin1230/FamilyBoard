@@ -158,7 +158,7 @@ fun WriteQuestionScreen(questionTitle: MutableState<String>, questionContent: Mu
                     mean = stringResource(R.string.q_a_content),
                     enabled = true,
                     tfValue = questionContent,
-                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
+                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Default, keyboardType = KeyboardType.Text),
                     visualTransformation = VisualTransformation.None,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -195,7 +195,7 @@ fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableSt
                     mean = stringResource(R.string.q_a_content),
                     enabled = false,
                     tfValue = questionContent,
-                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
+                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Default, keyboardType = KeyboardType.Text),
                     visualTransformation = VisualTransformation.None,
                     modifier = Modifier
                         .fillMaxWidth()
@@ -207,7 +207,7 @@ fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableSt
                     mean = stringResource(R.string.q_a_answer),
                     enabled = true,
                     tfValue = answerContent,
-                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
+                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Default, keyboardType = KeyboardType.Text),
                     visualTransformation = VisualTransformation.None,
                     modifier = Modifier
                         .fillMaxWidth()
