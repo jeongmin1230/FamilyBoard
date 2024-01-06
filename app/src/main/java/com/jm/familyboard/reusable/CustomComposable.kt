@@ -22,10 +22,13 @@ import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
+import androidx.compose.material3.RadioButtonDefaults
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.material3.TextFieldColors
@@ -40,6 +43,8 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import com.jm.familyboard.R
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.RectangleShape
+import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -53,6 +58,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
@@ -61,7 +67,6 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
-import com.google.firebase.database.core.Platform
 import com.jm.familyboard.User
 
 val notoSansKr = FontFamily(
@@ -78,9 +83,11 @@ fun Loading(loading: MutableState<Boolean>) {
     val progress by animateLottieCompositionAsState(composition = composition, iterations = LottieConstants.IterateForever)
 
     if(loading.value) {
-        Box(modifier = Modifier
-            .size(400.dp)
-            .background(Color.Transparent)
+        Box(
+            modifier = Modifier
+                .size(400.dp)
+                .background(Color.Transparent),
+            contentAlignment = Alignment.Center
         ) {
             LottieAnimation(
                 composition = composition,
@@ -352,28 +359,59 @@ fun EnterInfoMultiColumn(mean: String, enabled: Boolean, tfValue: MutableState<S
 
 @Composable
 fun selectRadioButton(string: List<String>): String {
-    var selectedOption by remember { mutableStateOf(string[0]) }
-
-    Row{
+    var selectedOption by remember { mutableStateOf(User.roles.ifEmpty { string[0] }) }
+    Column {
         string.forEach { role ->
             Row(
                 verticalAlignment = Alignment.CenterVertically,
-                modifier = Modifier.clickable(interactionSource = MutableInteractionSource(), indication = null) { selectedOption = role }
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 4.dp)
+                    .clickable(
+                        interactionSource = MutableInteractionSource(),
+                        indication = null
+                    ) { selectedOption = role }
             ) {
                 RadioButton(
                     selected = (role == selectedOption), // role 있으면 거기에 없으면 처음 거에
-                    onClick = null
+                    onClick = null,
+                    colors = RadioButtonDefaults.colors(
+                        selectedColor = Color.Blue.copy(0.2f),
+                        unselectedColor = Color.LightGray,
+                        disabledSelectedColor = Color.LightGray,
+                        disabledUnselectedColor = Color.LightGray
+                    )
                 )
                 TextComposable(
                     text = role,
-                    style = MaterialTheme.typography.bodyMedium,
+                    style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
                     fontWeight = FontWeight.Normal,
-                    modifier = Modifier.padding(start = 4.dp, end = 8.dp)
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(start = 4.dp)
                 )
             }
         }
     }
     return selectedOption
+}
+
+@Composable
+fun CompleteButton(isEnable: Boolean, color: Color, text: String, modifier: Modifier, onClickButton: () -> Unit) {
+    Button(
+        enabled = isEnable,
+        colors = ButtonDefaults.buttonColors(containerColor = color, disabledContainerColor = Color.LightGray),
+        onClick = onClickButton,
+        shape = RectangleShape,
+        modifier = modifier.height(48.dp),
+    ) {
+        TextComposable(
+            text = text,
+            style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black, textAlign = TextAlign.Center),
+            fontWeight = FontWeight.Normal,
+            modifier = Modifier
+        )
+    }
 }
 
 @Composable

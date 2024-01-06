@@ -45,10 +45,10 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jm.familyboard.BuildConfig
-import com.jm.familyboard.CompleteButton
 import com.jm.familyboard.R
 import com.jm.familyboard.User
 import com.jm.familyboard.reusable.AppBar
+import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.ConfirmDialog
 import com.jm.familyboard.reusable.ConfirmPasswordSupportingText
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
@@ -56,6 +56,7 @@ import com.jm.familyboard.reusable.NewPasswordSupportingText
 import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.WhatMean
 import com.jm.familyboard.reusable.getStoredUserPassword
+import com.jm.familyboard.reusable.selectRadioButton
 import com.jm.familyboard.reusable.textFieldKeyboard
 
 @Composable
@@ -100,7 +101,6 @@ fun MyInformationScreen(mainNavController: NavHostController) {
 fun MyInformation(invitationCode: MutableState<String>, logoutAction: () -> Unit, withdrawalAction: () -> Unit) {
     val confirmLogout = remember { mutableStateOf(false) }
     val confirmWithdrawal = remember { mutableStateOf(false) }
-    invitationCode.value = invitationCode.value.ifEmpty { stringResource(id = R.string.please_set_representative) }
     Column(Modifier.verticalScroll(rememberScrollState())) {
         Spacer(modifier = Modifier.height(10.dp))
 
@@ -126,6 +126,7 @@ fun MyInformation(invitationCode: MutableState<String>, logoutAction: () -> Unit
                     false
                 }
             }
+            WhatMean(mean = stringResource(id = R.string.my_information_for_representative), essential = false)
         }
 
         Divider(Modifier.background(Color.Gray))
@@ -178,8 +179,6 @@ fun CheckPassword(context: Context, complete: () -> Unit) {
 
 @Composable
 fun EditInformation(editName: MutableState<String>, editRoles: MutableState<String>, editNewPassword: MutableState<String>, editConfirmPassword: MutableState<String>, updateInfo: () -> Unit) {
-    val isSelect = remember { mutableStateOf(false) }
-    val rolesList = mutableListOf(stringResource(id = R.string.sign_up_father), stringResource(id = R.string.sign_up_mother), stringResource(id = R.string.sign_up_children), stringResource(id = R.string.sign_up_etc))
     Column {
         Column(modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -213,30 +212,7 @@ fun EditInformation(editName: MutableState<String>, editRoles: MutableState<Stri
             ) { ConfirmPasswordSupportingText(editNewPassword.value, editConfirmPassword.value) }
             Spacer(modifier = Modifier.height(10.dp))
             WhatMean(mean = stringResource(id = R.string.my_roles), essential = true)
-            rolesList.forEach { role ->
-                isSelect.value = role == editRoles.value
-                Row(
-                    verticalAlignment = Alignment.CenterVertically,
-                    modifier = Modifier
-                        .padding(horizontal = 4.dp, vertical = 10.dp)
-                        .clickable(
-                            interactionSource = MutableInteractionSource(),
-                            indication = null
-                        ) { editRoles.value = role }
-                ) {
-                    RadioButton(
-                        selected = isSelect.value,
-                        onClick = null,
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
-                    TextComposable(
-                        text = role,
-                        style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-                        fontWeight = FontWeight.Light,
-                        modifier = Modifier.padding(end = 4.dp)
-                    )
-                }
-            }
+            editRoles.value = selectRadioButton(stringArrayResource(id = R.array.roles).toList())
         }
         CompleteButton(
             isEnable = if(editNewPassword.value.trim().isNotEmpty() || editConfirmPassword.value.trim().isNotEmpty()) editNewPassword.value == editConfirmPassword.value else true,
@@ -287,18 +263,4 @@ fun RowLayout(mean: String, info: String, onClick: () -> Unit) {
                 .clickable { onClick() }
         )
     }
-}
-
-@Composable
-fun ConfirmText(highLight: Boolean, confirmText: String, onClick: () -> Unit) {
-    Text(
-        text = confirmText,
-        style = MaterialTheme.typography.bodySmall.copy(if(highLight) Color.Red else Color.DarkGray),
-        modifier = Modifier
-            .clickable(
-                interactionSource = MutableInteractionSource(),
-                indication = null
-            ) { onClick() }
-            .padding(start = 10.dp, bottom = 20.dp)
-    )
 }

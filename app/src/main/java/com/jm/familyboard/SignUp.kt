@@ -32,7 +32,10 @@ import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -46,6 +49,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jm.familyboard.reusable.AppBar
+import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.NewPasswordSupportingText
 import com.jm.familyboard.reusable.ConfirmPasswordSupportingText
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
@@ -55,6 +59,7 @@ import com.jm.familyboard.reusable.WhatMean
 import com.jm.familyboard.reusable.checkDuplicate
 import com.jm.familyboard.reusable.checkInvitationCode
 import com.jm.familyboard.reusable.isEmailValid
+import com.jm.familyboard.reusable.notoSansKr
 import com.jm.familyboard.reusable.selectRadioButton
 import com.jm.familyboard.reusable.signUp
 import com.jm.familyboard.reusable.textFieldColors
@@ -146,13 +151,19 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
             TextField(
                 value = emailValue.value,
                 onValueChange = { emailValue.value = it},
-                textStyle = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                textStyle = TextStyle(
+                    fontFamily = notoSansKr,
+                    platformStyle = PlatformTextStyle(
+                        includeFontPadding = false
+                    ),
+                    color = Color.Black
+                ),
                 placeholder = { TextFieldPlaceholderOrSupporting(true, "${stringResource(id = R.string.sign_up_email)} ${stringResource(id = R.string.sign_up_placeholder)}",true) },
                 visualTransformation = VisualTransformation.None,
                 modifier = Modifier
                     .onFocusChanged { isEmailTFFocused.value = it.isFocused }
                     .fillMaxSize(),
-                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
+                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Email),
                 supportingText = { if(!isEmailTFFocused.value) {
                         when(emailTest.intValue) {
                             1 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid), correct = true) }
@@ -211,7 +222,11 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 TextField(
                     value = invitationCodeValue.value,
                     onValueChange = { invitationCodeValue.value = it},
-                    textStyle = MaterialTheme.typography.bodyMedium.copy(if(invitationCodeTest.intValue != 2) Color.Black else Color.DarkGray.copy(0.5f)),
+                    textStyle = TextStyle(
+                        fontFamily = notoSansKr,
+                        platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        color = if(invitationCodeTest.intValue != 2) Color.Black else Color.DarkGray.copy(0.5f)
+                    ),
                     enabled = invitationCodeEnabled.value,
                     placeholder = { TextFieldPlaceholderOrSupporting(true, "${stringResource(id = R.string.sign_up_invite_code)} ${stringResource(id = R.string.sign_up_placeholder)}",true) },
                     visualTransformation = VisualTransformation.None,
@@ -240,7 +255,11 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 TextField(
                     value = groupNameValue.value,
                     onValueChange = { groupNameValue.value = it},
-                    textStyle = MaterialTheme.typography.bodyMedium.copy((if(groupNameTest.intValue != 2) Color.Black else Color.DarkGray.copy(0.5f))),
+                    textStyle = TextStyle(
+                        fontFamily = notoSansKr,
+                        platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        color = if(groupNameTest.intValue != 2) Color.Black else Color.DarkGray.copy(0.5f)
+                    ),
                     enabled = groupNameEnabled.value,
                     placeholder = { TextFieldPlaceholderOrSupporting(true, "${stringResource(id = R.string.sign_up_group_name)} ${stringResource(id = R.string.sign_up_placeholder)}",true) },
                     visualTransformation = VisualTransformation.None,
@@ -263,10 +282,7 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
             Spacer(modifier = Modifier.height(14.dp))
             rolesValue.value.ifEmpty { rolesBoolean.value = !rolesBoolean.value }
             WhatMean(mean = stringResource(id = R.string.sign_up_roles), essential = true)
-            rolesValue.value = selectRadioButton(
-                mutableListOf(stringResource(id = R.string.sign_up_father), stringResource(id = R.string.sign_up_mother), stringResource(id = R.string.sign_up_children), stringResource(id = R.string.sign_up_etc))
-            )
-        }
+            rolesValue.value = selectRadioButton(stringArrayResource(id = R.array.roles).toList()) }
         val condition = nameValue.value.trim().isNotEmpty()
                 && emailValue.value.trim().isNotEmpty()
                 && emailTest.intValue == 1
@@ -286,9 +302,10 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
 fun Type(first: MutableState<Boolean>, second: MutableState<Boolean>, click: () -> Unit) {
     Row(modifier = Modifier
         .padding(start = 10.dp, bottom = 10.dp)) {
-        Text(
+        TextComposable(
             text = stringResource(id = R.string.sign_up_yes_invite_code),
             style = MaterialTheme.typography.bodySmall.copy(if(first.value) Color.Black else Color.LightGray),
+            fontWeight = FontWeight.Normal,
             modifier = Modifier
                 .padding(end = 4.dp)
                 .clickable {
@@ -297,9 +314,10 @@ fun Type(first: MutableState<Boolean>, second: MutableState<Boolean>, click: () 
                     second.value = false
                 }
         )
-        Text(
+        TextComposable(
             text = stringResource(id = R.string.sign_up_no_invite_code),
             style = MaterialTheme.typography.bodySmall.copy(if(second.value)Color.Black else Color.LightGray),
+            fontWeight = FontWeight.Normal,
             modifier = Modifier
                 .padding(start = 4.dp)
                 .clickable {
@@ -312,24 +330,6 @@ fun Type(first: MutableState<Boolean>, second: MutableState<Boolean>, click: () 
 }
 
 @Composable
-fun CompleteButton(isEnable: Boolean, color: Color, text: String, modifier: Modifier, onClickButton: () -> Unit) {
-    Button(
-        enabled = isEnable,
-        colors = ButtonDefaults.buttonColors(containerColor = color, disabledContainerColor = Color.LightGray),
-        onClick = onClickButton,
-        shape = RectangleShape,
-        modifier = modifier.height(48.dp),
-    ) {
-        TextComposable(
-            text = text,
-            style = MaterialTheme.typography.bodyMedium.copy(color = Color.Black, textAlign = TextAlign.Center),
-            fontWeight = FontWeight.Normal,
-            modifier = Modifier
-        )
-    }
-}
-
-@Composable
 fun DoneSignUp(onDone: () -> Unit) {
     Column(modifier = Modifier.fillMaxSize()) {
         Column(
@@ -337,9 +337,10 @@ fun DoneSignUp(onDone: () -> Unit) {
             verticalArrangement = Arrangement.Center,
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
+            TextComposable(
                 text = stringResource(id = R.string.sign_up_complete),
-                style = MaterialTheme.typography.titleLarge.copy(color = Color.White, textAlign = TextAlign.Center),
+                style = MaterialTheme.typography.titleLarge.copy(color = Color.Black, textAlign = TextAlign.Center),
+                fontWeight = FontWeight.Bold,
                 modifier = Modifier.fillMaxWidth()
             )
         }

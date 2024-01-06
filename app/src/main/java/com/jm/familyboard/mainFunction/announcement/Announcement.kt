@@ -14,7 +14,6 @@ import androidx.compose.material3.MaterialTheme
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -27,15 +26,14 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
-import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.jm.familyboard.CompleteButton
 import com.jm.familyboard.R
 import com.jm.familyboard.reusable.AllList
 import com.jm.familyboard.reusable.AppBar
+import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.EnterInfoMultiColumn
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
 import com.jm.familyboard.reusable.TextComposable

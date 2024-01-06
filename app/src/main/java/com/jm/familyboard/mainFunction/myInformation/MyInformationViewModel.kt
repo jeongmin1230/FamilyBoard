@@ -12,13 +12,14 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.Login
+import com.jm.familyboard.MainActivity
 import com.jm.familyboard.R
 import com.jm.familyboard.User
 import com.jm.familyboard.reusable.removeUserCredentials
 
 class MyInformationViewModel: ViewModel() {
     private val currentUser = FirebaseAuth.getInstance().currentUser
-    private val deleteMember = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/composition").child(User.uid)
+    private val deleteMember = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/composition")
     private val userUidRef = FirebaseDatabase.getInstance().getReference("real/user/real_user/${User.uid}")
     private val announcementRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement")
     private val qaRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/q_a")
@@ -69,6 +70,9 @@ class MyInformationViewModel: ViewModel() {
                 }
         } else {
             Toast.makeText(context, context.getString(R.string.my_information_edit_success), Toast.LENGTH_SHORT).show()
+            val intent = Intent(context, MainActivity::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            context.startActivity(intent)
         }
         User.name = editName.value
         User.roles = editRoles.value
@@ -83,23 +87,19 @@ class MyInformationViewModel: ViewModel() {
         Toast.makeText(context, context.getString(R.string.done_logout), Toast.LENGTH_SHORT).show()
         context.startActivity(intent)
     }
+
     fun withdrawal(context: Context) {
         deleteMember.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                println("snapshot childrenCount : ${snapshot.childrenCount}")
-                for(childSnapshot in snapshot.children) {
-                    val registrant = childSnapshot.child(context.getString(R.string.database_registrant)).getValue(String::class.java)
-                    if(registrant == User.uid) childSnapshot.ref.removeValue()
-                }
-                if(snapshot.childrenCount < 1) {
-                    FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").removeValue()
-                    FirebaseDatabase.getInstance().getReference("real/group_name_and_invitation_code").child(User.groupName).removeValue()
+                snapshot.child(User.uid).ref.removeValue()
+                if (snapshot.childrenCount < 1) {
+                    FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").ref.removeValue()
+                    FirebaseDatabase.getInstance().getReference("real/group_name_and_invitation_code").child(User.groupName).ref.removeValue()
                 }
             }
 
             override fun onCancelled(error: DatabaseError) {
             }
-
         })
         announcementRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
@@ -119,14 +119,14 @@ class MyInformationViewModel: ViewModel() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 for(childSnapshot in snapshot.children) {
                     val writerRef = childSnapshot.child(context.getString(R.string.database_writer))
-                    val writer = writerRef.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
-                    val answerContentRef = childSnapshot.child(context.getString(R.string.database_answer_content)).child(context.getString(R.string.database_writer))
-                    val answerUid = answerContentRef.getValue(String::class.java) ?: ""
-                    if(answerUid == User.uid) {
-                        qaRef.child(context.getString(R.string.database_flag)).setValue(false)
-                        FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/q_a/$answerContentRef").removeValue()
-                    } else if(writer == User.uid){
-                        FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/q_a/${childSnapshot.key}").removeValue()
+                    val writerUid = writerRef.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
+                    val answerContentUid = childSnapshot.child(context.getString(R.string.database_answer_content)).child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
+                    if(answerContentUid == User.uid) {
+                        qaRef.child("${childSnapshot.key}").child(context.getString(R.string.database_flag)).setValue(false)
+                        childSnapshot.child(context.getString(R.string.database_answer_content)).ref.removeValue()
+                    }
+                    if(writerUid == User.uid) {
+                        qaRef.child("${childSnapshot.key}").removeValue()
                     }
                 }
             }
@@ -135,10 +135,8 @@ class MyInformationViewModel: ViewModel() {
             }
 
         })
-        FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").child(context.getString(
-            R.string.family_representative)).removeValue()
+        FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").child(context.getString(R.string.family_representative)).removeValue()
         FirebaseDatabase.getInstance().getReference("real/user/email").child(User.email.replace("@", "_").replace(".","_")).removeValue()
-        deleteMember.removeValue()
         userUidRef.removeValue()
             .addOnSuccessListener {
                 Toast.makeText(context, context.getString(R.string.done_withdrawal), Toast.LENGTH_SHORT).show()

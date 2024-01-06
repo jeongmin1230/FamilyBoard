@@ -2,8 +2,8 @@
     <string name="app_name">가게</string>
 
     <string name="title_activity_main">Main</string>
-    <string name="title_activity_login">Login</string>
     <string name="title_activity_sign_up">SignUp</string>
+    <string name="how_to_use">사용방법</string>
     <string name="first">first</string>
     <string name="login">로그인</string>
 
@@ -52,10 +52,6 @@
     <string name="sign_up_group_name_duplicate">그룹명은 중복되지 않아야 합니다. 이미 가입한 구성원이 있다면 구성원을 통해 초대 코드로 가입 해 주세요.</string>
 
     <string name="sign_up_roles">가족 내 역할</string>
-    <string name="sign_up_mother">어머니</string>
-    <string name="sign_up_father">아버지</string>
-    <string name="sign_up_children">자식</string>
-    <string name="sign_up_etc">기타</string>
     <string name="sign_up_complete">회원 가입이 완료되었습니다.\n\n가입 한 이메일로 다시 로그인 해 주세요.</string>
     <string name="go_to_login">로그인 하러 가기</string>
 

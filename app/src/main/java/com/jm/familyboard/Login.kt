@@ -18,16 +18,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.foundation.text.KeyboardOptions
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextField
-import androidx.compose.material3.TextFieldDefaults
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -59,6 +51,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
 import com.jm.familyboard.reusable.Loading
 import com.jm.familyboard.reusable.TextComposable
@@ -128,7 +121,6 @@ fun FirstScreen() {
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>) {
     val context = LocalContext.current
