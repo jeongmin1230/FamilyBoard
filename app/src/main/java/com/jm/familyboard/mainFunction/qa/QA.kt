@@ -34,15 +34,10 @@ import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
-import com.google.firebase.database.DataSnapshot
-import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
-import com.google.firebase.database.ValueEventListener
-import com.jm.familyboard.CompleteButton
 import com.jm.familyboard.R
-import com.jm.familyboard.User
 import com.jm.familyboard.reusable.AllList
 import com.jm.familyboard.reusable.AppBar
+import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.EnterInfoMultiColumn
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
 import com.jm.familyboard.reusable.TextComposable
