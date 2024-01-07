@@ -2,6 +2,7 @@ package com.jm.familyboard.mainFunction.qa
 
 import android.content.Context
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableLongStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
@@ -22,6 +23,7 @@ class QAViewModel: ViewModel() {
     var vmQuestionContent = mutableStateOf("")
     var vmQuestionDate = mutableStateOf("")
 
+    var vmAnswerCount = mutableLongStateOf(0L)
     var vmAnswerContent = mutableStateOf("")
     var vmAnswerDate = mutableStateOf("")
 
@@ -45,6 +47,8 @@ class QAViewModel: ViewModel() {
                 val qaList = mutableListOf<QAResponse>()
                 for (childSnapshot in snapshot.children) {
                     val answerContent = childSnapshot.child(context.getString(R.string.database_answer_content))
+                    println("answer count : ${answerContent.childrenCount}")
+                    vmAnswerCount.value = answerContent.childrenCount
                     val contentInAC = answerContent.child(context.getString(R.string.database_content)).getValue(String::class.java) ?: ""
                     val dateInAC = answerContent.child(context.getString(R.string.database_date)).getValue(String::class.java) ?: ""
 
@@ -90,7 +94,7 @@ class QAViewModel: ViewModel() {
         qaReference.addValueEventListener(valueEventListener)
     }
 
-    fun writeQuestion(context: Context, currentNavController: NavHostController) {
+    fun writeQuestion(context: Context) {
         qaReference.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val nextNo = snapshot.childrenCount + 1
@@ -104,7 +108,6 @@ class QAViewModel: ViewModel() {
                 val writerRef = ref.child(context.getString(R.string.database_writer))
                 writerRef.child(context.getString(R.string.database_name)).setValue(User.name)
                 writerRef.child(context.getString(R.string.database_uid)).setValue(User.uid)
-                currentNavController.popBackStack()
             }
             override fun onCancelled(error: DatabaseError) {
             }
@@ -116,8 +119,10 @@ class QAViewModel: ViewModel() {
         answerRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 answerRef.child(context.getString(R.string.database_flag)).setValue(true)
-                val answerContentRef = answerRef.child(context.getString(R.string.database_answer_content))
+                val answerContentsRef = answerRef.child(context.getString(R.string.database_answer_content))
+                val answerContentRef = answerContentsRef.child(vmAnswerDate.value)
                 answerContentRef.child(context.getString(R.string.database_uid)).setValue(User.uid)
+                println("vmAnswerDate.value : ${vmAnswerDate.value}")
                 answerContentRef.child(context.getString(R.string.database_content)).setValue(vmAnswerContent.value)
                 answerContentRef.child(context.getString(R.string.database_date)).setValue(vmAnswerDate.value)
                 currentNavController.popBackStack()

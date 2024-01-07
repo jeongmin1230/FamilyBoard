@@ -49,6 +49,8 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
     val currentNavController = rememberNavController()
     val announcementList = remember { announcementViewModel.announcements }
     val announcementArray = stringArrayResource(id = R.array.announcement_nav)
+    val currentDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis()))
+
     NavHost(currentNavController, startDestination = announcementArray[1]) {
         composable(announcementArray[1]) {
             Column(modifier = Modifier
@@ -72,6 +74,8 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                     )
                 } else {
                     announcementList.value.forEach { announcement ->
+                        val date = if(announcement.date.split("/")[0] > currentDate.split("/")[0]) announcement.date.split("/")[0]
+                                    else announcement.date.split("/")[1].split(".")[0]
                         AllList(
                             screenType = 0,
                             flag = false,
@@ -79,7 +83,7 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                             no = 0,
                             title = announcement.title,
                             content = announcement.content,
-                            date = announcement.date,
+                            date = date,
                             writer = announcement.writer,
                             answer = "",
                             writerUid = announcement.writerUid
@@ -100,7 +104,6 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                 .background(Color.White)
                 .fillMaxSize()) {
                 AppBar(false, announcementArray[2], null, {}) { currentNavController.popBackStack() }
-                val currentDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis()))
                 announcementViewModel.vmWriteDate.value = if(announcementViewModel.vmModify.value) announcementViewModel.vmWriteDate.value else currentDate
                 RegisterNotice(announcementViewModel.vmModify.value, announcementViewModel.vmTitle, announcementViewModel.vmContent, announcementViewModel.vmWriteDate.value) {
                     announcementViewModel.writeDB(context, announcementViewModel.vmModify.value, announcementViewModel.vmWritingNo.intValue, currentNavController)
@@ -138,7 +141,7 @@ fun RegisterNotice(vmModify: Boolean, vmTitle: MutableState<String>, vmContent: 
                         .padding(horizontal = 10.dp)
                 )
                 TextComposable(
-                    text = if(vmModify) "${stringResource(R.string.first_register_date)} $vmWriteDate" else "${stringResource(id = R.string.register_date)} $vmWriteDate",
+                    text = if(vmModify) "${stringResource(R.string.first_register_date)} ${vmWriteDate.split(",")[0]}" else "${stringResource(id = R.string.register_date)} ${vmWriteDate.split(",")[0]}",
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Black),
                     fontWeight = FontWeight.Light,
                     modifier = Modifier

@@ -165,12 +165,12 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                     .fillMaxSize(),
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Email),
                 supportingText = { if(!isEmailTFFocused.value) {
-                        when(emailTest.intValue) {
-                            1 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid), correct = true) }
-                            2, 3 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid_but_duplicate), correct = false)}
-                            4 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_invalid), correct = false) }
-                        }
+                    when(emailTest.intValue) {
+                        1 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid), correct = true) }
+                        2, 3 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_valid_but_duplicate), correct = false)}
+                        4 -> { TextFieldPlaceholderOrSupporting(isPlaceholder = false, text = stringResource(id = R.string.sign_up_email_invalid), correct = false) }
                     }
+                }
 
                 },
                 singleLine = true,

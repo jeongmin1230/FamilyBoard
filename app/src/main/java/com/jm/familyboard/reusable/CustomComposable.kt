@@ -214,11 +214,11 @@ fun AllList(screenType: Int, flag: Boolean, modify: MutableState<Boolean>, no: I
                             }
                         }
                         1 -> {
-                            showDialog = if(flag) {
+                            showDialog = true/*if(flag) {
                                 Toast.makeText(context, context.getString(R.string.q_a_answer_Warning), Toast.LENGTH_SHORT).show()
                                 false
                             }
-                            else { true }
+                            else { true }*/
                         }
                     }
                 }

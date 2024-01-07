@@ -2,8 +2,14 @@ package com.jm.familyboard.mainFunction.qa
 
 import android.annotation.SuppressLint
 import android.content.Context
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
@@ -11,7 +17,10 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.Button
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
@@ -24,6 +33,8 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -41,6 +52,9 @@ import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.EnterInfoMultiColumn
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
 import com.jm.familyboard.reusable.TextComposable
+import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
+import com.jm.familyboard.reusable.notoSansKr
+import com.jm.familyboard.reusable.textFieldColors
 import com.jm.familyboard.reusable.textFieldKeyboard
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
 import java.text.SimpleDateFormat
@@ -79,13 +93,14 @@ fun Q_AScreen(mainNavController: NavHostController) {
                         modifier = Modifier
                     )
                 } else {
+                    println("count : ${qaViewModel.vmAnswerCount.value}")
                     qaList.value.forEach { qa ->
                         AllList(
                             screenType = 1,
                             flag = qa.no.flag,
                             modify = isModify,
                             no = qa.no.no,
-                            title = qa.no.questionTitle,
+                            title = "${qa.no.questionTitle} [${qaViewModel.vmAnswerCount.value}]",
                             content = qa.no.questionContent.content,
                             date = qa.no.questionContent.date,
                             writer = qa.no.writer.name,
@@ -112,7 +127,7 @@ fun Q_AScreen(mainNavController: NavHostController) {
                     qaViewModel.init()
                     currentNavController.popBackStack() }
                 WriteQuestionScreen(qaViewModel.vmQuestionTitle, qaViewModel.vmQuestionContent, qaViewModel.vmQuestionDate.value) {
-                    qaViewModel.writeQuestion(context, currentNavController)
+                    qaViewModel.writeQuestion(context)
                 }
             }
         }
@@ -122,7 +137,6 @@ fun Q_AScreen(mainNavController: NavHostController) {
             Column(modifier = Modifier
                 .background(Color.White)
                 .fillMaxSize()) {
-                println("vmWriteNo : ${qaViewModel.vmQuestionNo.intValue}")
                 AppBar(false, qaArray[4], null, {}) { currentNavController.popBackStack() }
                 AnswerScreen(qaViewModel.vmQuestionContent, qaViewModel.vmAnswerContent) {
                     qaViewModel.writeAnswer(context, currentNavController)
@@ -161,7 +175,7 @@ fun WriteQuestionScreen(questionTitle: MutableState<String>, questionContent: Mu
                         .padding(horizontal = 10.dp)
                 )
                 TextComposable(
-                    text = "${stringResource(R.string.register_date)} $questionDate",
+                    text = "${stringResource(R.string.register_date)} ${questionDate.split("/")[0]}",
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Black),
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier
@@ -172,7 +186,7 @@ fun WriteQuestionScreen(questionTitle: MutableState<String>, questionContent: Mu
         }
         CompleteButton(
             isEnable = questionTitle.value.isNotEmpty() && questionContent.value.isNotEmpty(),
-            text = stringResource(id = R.string.q_a_write_answer),
+            text = stringResource(id = R.string.q_a_write_question),
             color = Color.Blue.copy(0.2f),
             modifier = Modifier.fillMaxWidth()) {
             writeQuestion()
@@ -180,42 +194,54 @@ fun WriteQuestionScreen(questionTitle: MutableState<String>, questionContent: Mu
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableState<String>, writeAnswer: () -> Unit) {
     Column {
         Column(Modifier.weight(1f)) {
-            Column(Modifier.verticalScroll(rememberScrollState())) {
-                EnterInfoMultiColumn(
-                    mean = stringResource(R.string.q_a_content),
-                    enabled = false,
-                    tfValue = questionContent,
-                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Default, keyboardType = KeyboardType.Text),
-                    visualTransformation = VisualTransformation.None,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(150.dp)
-                        .padding(horizontal = 10.dp)
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                EnterInfoMultiColumn(
-                    mean = stringResource(R.string.q_a_answer),
-                    enabled = true,
-                    tfValue = answerContent,
-                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Default, keyboardType = KeyboardType.Text),
-                    visualTransformation = VisualTransformation.None,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .padding(horizontal = 10.dp)
-                )
-            }
+            EnterInfoMultiColumn(
+                mean = stringResource(R.string.q_a_content),
+                enabled = false,
+                tfValue = questionContent,
+                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Default, keyboardType = KeyboardType.Text),
+                visualTransformation = VisualTransformation.None,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(150.dp)
+                    .padding(horizontal = 10.dp)
+            )
+            Spacer(modifier = Modifier.height(6.dp))
         }
-        CompleteButton(
-            isEnable = questionContent.value.isNotEmpty() && answerContent.value.isNotEmpty(),
-            text = stringResource(id = R.string.register_notice),
-            color = Color.Blue.copy(0.2f),
-            modifier = Modifier.fillMaxWidth()) { writeAnswer() }
+        Row(modifier = Modifier.padding(horizontal = 4.dp)) {
+            TextField(
+                value = answerContent.value,
+                onValueChange = { answerContent.value = it},
+                textStyle = TextStyle(
+                    fontFamily = notoSansKr,
+                    platformStyle = PlatformTextStyle(includeFontPadding = false),
+                    color = Color.Black
+                ),
+                label = { TextFieldPlaceholderOrSupporting(isPlaceholder = true, text = stringResource(id = R.string.q_a_answer_content), correct = true)},
+                interactionSource = MutableInteractionSource(),
+                visualTransformation = VisualTransformation.None,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(vertical = 4.dp),
+                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Default, keyboardType = KeyboardType.Text),
+                singleLine = true,
+                colors = textFieldColors(Color.Blue.copy(0.2f))
+            )
+            TextComposable(
+                text = stringResource(id = R.string.q_a_register_answer),
+                style = MaterialTheme.typography.labelMedium.copy(Color.Black),
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier
+                    .align(Alignment.CenterVertically)
+                    .padding(all = 4.dp)
+                    .clickable(enabled = answerContent.value.isNotEmpty()) { writeAnswer() }
+            )
+        }
     }
 }
 
