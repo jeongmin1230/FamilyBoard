@@ -5,13 +5,13 @@ data class QAResponse(
 ) {
     data class No(
         val answerContent: AnswerContent,
-        val flag: Boolean,
         val no: Int,
         val questionContent: QuestionContent,
         val questionTitle: String,
         val writer: Writer
     ) {
         data class AnswerContent(
+            val answerCount: Long,
             val content: String,
             val date: String
         )

@@ -1,13 +1,9 @@
 package com.jm.familyboard.mainFunction.qa
 
 import android.annotation.SuppressLint
-import android.content.Context
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
-import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -17,14 +13,13 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material3.Button
+import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
@@ -46,6 +41,7 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jm.familyboard.R
+import com.jm.familyboard.datamodel.AnswerContentResponse
 import com.jm.familyboard.reusable.AllList
 import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.CompleteButton
@@ -60,6 +56,7 @@ import com.jm.familyboard.ui.theme.FamilyBoardTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 
+@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun Q_AScreen(mainNavController: NavHostController) {
@@ -93,14 +90,12 @@ fun Q_AScreen(mainNavController: NavHostController) {
                         modifier = Modifier
                     )
                 } else {
-                    println("count : ${qaViewModel.vmAnswerCount.value}")
                     qaList.value.forEach { qa ->
                         AllList(
                             screenType = 1,
-                            flag = qa.no.flag,
                             modify = isModify,
-                            no = qa.no.no,
-                            title = "${qa.no.questionTitle} [${qaViewModel.vmAnswerCount.value}]",
+                            answerCount = qa.no.answerContent.answerCount,
+                            title = qa.no.questionTitle,
                             content = qa.no.questionContent.content,
                             date = qa.no.questionContent.date,
                             writer = qa.no.writer.name,
@@ -110,7 +105,6 @@ fun Q_AScreen(mainNavController: NavHostController) {
                             qaViewModel.vmQuestionContent.value = qa.no.questionContent.content
                             qaViewModel.vmQuestionTitle.value = qa.no.questionTitle
                             qaViewModel.vmAnswerContent.value = qa.no.answerContent.content
-                            qaViewModel.vmFlag.value = qa.no.flag
                             qaViewModel.vmQuestionNo.intValue = qa.no.no
                             currentNavController.navigate(qaArray[5])
                         }
@@ -126,20 +120,23 @@ fun Q_AScreen(mainNavController: NavHostController) {
                 AppBar(false, qaArray[2], null, {}) {
                     qaViewModel.init()
                     currentNavController.popBackStack() }
-                WriteQuestionScreen(qaViewModel.vmQuestionTitle, qaViewModel.vmQuestionContent, qaViewModel.vmQuestionDate.value) {
-                    qaViewModel.writeQuestion(context)
+                WriteQuestionScreen(qaViewModel.vmQuestionTitle, qaViewModel.vmQuestionContent, qaViewModel.vmQuestionDate.value.split(":")[0]) {
+                    qaViewModel.writeQuestion(context, currentNavController)
                 }
             }
         }
 
         composable(qaArray[5]) {
             qaViewModel.vmAnswerDate.value = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis()))
+            val qaCommentList = remember { qaViewModel.comments }
             Column(modifier = Modifier
                 .background(Color.White)
                 .fillMaxSize()) {
                 AppBar(false, qaArray[4], null, {}) { currentNavController.popBackStack() }
-                AnswerScreen(qaViewModel.vmQuestionContent, qaViewModel.vmAnswerContent) {
-                    qaViewModel.writeAnswer(context, currentNavController)
+                AnswerScreen(qaViewModel.vmQuestionContent, qaViewModel.vmAnswerContent, qaCommentList, {
+                    qaViewModel.loadComment(context)
+                }) {
+                    qaViewModel.writeComment(context)
                 }
             }
         }
@@ -175,13 +172,14 @@ fun WriteQuestionScreen(questionTitle: MutableState<String>, questionContent: Mu
                         .padding(horizontal = 10.dp)
                 )
                 TextComposable(
-                    text = "${stringResource(R.string.register_date)} ${questionDate.split("/")[0]}",
+                    text = "${stringResource(R.string.register_date)} ${questionDate.substring(0, 2)}. ${questionDate.substring(2, 4)}. ${questionDate.substring(4, 6)}",
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Black),
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier
                         .align(Alignment.End)
                         .padding(end = 10.dp)
                 )
+
             }
         }
         CompleteButton(
@@ -197,9 +195,14 @@ fun WriteQuestionScreen(questionTitle: MutableState<String>, questionContent: Mu
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("SimpleDateFormat")
 @Composable
-fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableState<String>, writeAnswer: () -> Unit) {
+fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableState<String>, commentList: MutableState<List<AnswerContentResponse>>, loadAnswer: () -> Unit, writeAnswer: () -> Unit) {
+    val enabled = remember { mutableStateOf(false) }
+    LaunchedEffect(enabled.value) {
+        enabled.value = false
+        loadAnswer()
+    }
     Column {
-        Column(Modifier.weight(1f)) {
+        Column(Modifier.weight(0.2f)) {
             EnterInfoMultiColumn(
                 mean = stringResource(R.string.q_a_content),
                 enabled = false,
@@ -211,7 +214,40 @@ fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableSt
                     .height(150.dp)
                     .padding(horizontal = 10.dp)
             )
-            Spacer(modifier = Modifier.height(6.dp))
+        }
+        Column(modifier = Modifier
+            .verticalScroll(rememberScrollState())
+            .weight(0.8f)) {
+            commentList.value.forEach {
+                val date = it.date.split(":")[1]
+                Column(Modifier.padding(all = 4.dp)) {
+                    TextComposable(
+                        text = "${date.substring(0, 2)} : ${date.substring(2, 4)}",
+                        style = MaterialTheme.typography.labelSmall.copy(Color.Gray),
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                    Row(
+                        modifier = Modifier.padding(bottom = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically) {
+                        TextComposable(
+                            text = it.content,
+                            style = MaterialTheme.typography.labelLarge.copy(Color.Black),
+                            fontWeight = FontWeight.Normal,
+                            modifier = Modifier
+                                .weight(1f)
+                                .padding(end = 4.dp)
+                        )
+                        TextComposable(
+                            text = it.name,
+                            style = MaterialTheme.typography.labelSmall.copy(Color.LightGray),
+                            fontWeight = FontWeight.Normal,
+                            modifier = Modifier
+                        )
+                    }
+                    Divider(modifier = Modifier.background(Color.LightGray))
+                }
+            }
         }
         Row(modifier = Modifier.padding(horizontal = 4.dp)) {
             TextField(
@@ -239,8 +275,11 @@ fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableSt
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
                     .padding(all = 4.dp)
-                    .clickable(enabled = answerContent.value.isNotEmpty()) { writeAnswer() }
+                    .clickable { if(answerContent.value.isNotEmpty()) enabled.value = true }
             )
+            if(enabled.value) {
+                writeAnswer()
+            }
         }
     }
 }

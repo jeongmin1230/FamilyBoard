@@ -1,5 +1,6 @@
 package com.jm.familyboard.reusable
 
+import android.annotation.SuppressLint
 import android.widget.Toast
 import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
@@ -59,6 +60,7 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
@@ -68,6 +70,8 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.jm.familyboard.User
+import java.text.SimpleDateFormat
+import java.util.Date
 
 val notoSansKr = FontFamily(
     Font(R.font.notosanskr_bold, FontWeight.Bold, FontStyle.Normal),
@@ -101,13 +105,7 @@ fun Loading(loading: MutableState<Boolean>) {
 fun TextComposable(text: String, style: TextStyle, fontWeight: FontWeight, modifier: Modifier) {
     Text(
         text = text,
-        style = style.merge(
-            TextStyle(
-                platformStyle = PlatformTextStyle(
-                    includeFontPadding = false
-                )
-            )
-        ),
+        style = style.merge(TextStyle(platformStyle = PlatformTextStyle(includeFontPadding = false))),
         fontWeight = fontWeight,
         fontFamily = notoSansKr,
         modifier = modifier
@@ -194,16 +192,17 @@ fun HowToUseColumn(text: String) {
     }
 }
 
+@SuppressLint("SimpleDateFormat")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AllList(screenType: Int, flag: Boolean, modify: MutableState<Boolean>, no: Int, title: String, content: String, date: String, writer: String, answer: String, writerUid: String, clickAction: () -> Unit) {
+fun AllList(screenType: Int, modify: MutableState<Boolean>, answerCount: Long, title: String, content: String, date: String, writer: String, answer: String, writerUid: String, clickAction: () -> Unit) {
     val context = LocalContext.current
     val showDetail = remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
     Column(
         modifier = Modifier
             .combinedClickable(
-                onClick = { showDetail.value = !showDetail.value },
+                onClick = { if(screenType == 0) showDetail.value = !showDetail.value },
                 onLongClick = {
                     when(screenType) {
                         0 -> {
@@ -214,39 +213,42 @@ fun AllList(screenType: Int, flag: Boolean, modify: MutableState<Boolean>, no: I
                             }
                         }
                         1 -> {
-                            showDialog = true/*if(flag) {
-                                Toast.makeText(context, context.getString(R.string.q_a_answer_Warning), Toast.LENGTH_SHORT).show()
-                                false
-                            }
-                            else { true }*/
+                            showDialog = true
                         }
                     }
                 }
             )
     ) {
+        val currentDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis())).split(":")[0]
+        val dateSplit = date.split(":")
+        val splitDate = if(dateSplit[0].toInt() >= currentDate.toInt()) "${dateSplit[1].substring(0, 2)} : ${dateSplit[1].substring(2, 4)}"
+                        else "${dateSplit[0].substring(0, 2)}. ${dateSplit[0].substring(2, 4)}. ${dateSplit[0].substring(4, 6)}"
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(all = 10.dp)) {
-            val text = when(flag) {
-                true -> {
-                    stringResource(id = R.string.complete_answer)
-                }
-                false -> {
-                    stringResource(id = R.string.waiting_for_answer)
+            TextComposable(
+                text = splitDate,
+                style = MaterialTheme.typography.labelSmall.copy(Color.DarkGray),
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.align(Alignment.Start)
+            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                TextComposable(
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.padding(end = 4.dp)
+                )
+                if(screenType != 0) {
+                    TextComposable(
+                        text = if(answerCount == 0L) "" else "[${answerCount}]",
+                        style = MaterialTheme.typography.bodyMedium.copy(Color.Blue),
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier
+                    )
                 }
             }
-            TextComposable(
-                text = if(screenType == 0) date else text,
-                style = MaterialTheme.typography.labelSmall.copy(if(flag && screenType == 1) Color.Blue else if(!flag && screenType == 1) Color.Red else Color.DarkGray),
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier.align(Alignment.Start)
-            )
-            TextComposable(
-                text = title,
-                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier.align(Alignment.Start)
-            )
+
             TextComposable(
                 text = writer,
                 style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
@@ -266,20 +268,12 @@ fun AllList(screenType: Int, flag: Boolean, modify: MutableState<Boolean>, no: I
                 fontWeight = FontWeight.Normal,
                 modifier = Modifier
             )
-            if(flag) {
-                TextComposable(
-                    text = "[${stringResource(id = R.string.database_answer_mean)}]",
-                    style = MaterialTheme.typography.labelSmall.copy(Color.DarkGray),
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier.padding(top = 10.dp)
-                )
-                TextComposable(
-                    text = answer,
-                    style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier.padding(top = 10.dp)
-                )
-            }
+            TextComposable(
+                text = answer,
+                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.padding(top = 10.dp)
+            )
         }
     }
     Divider(Modifier.border(BorderStroke(1.dp, Color.DarkGray)))
@@ -311,11 +305,9 @@ fun EnterInfoSingleColumn(essential: Boolean, mean: String, tfValue: MutableStat
             onValueChange = { tfValue.value = it},
             textStyle = TextStyle(
                 fontFamily = notoSansKr,
-                platformStyle = PlatformTextStyle(
-                    includeFontPadding = false
-                ),
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
                 color = Color.Black
-            )/*MaterialTheme.typography.bodyMedium.copy(fontFamily = notoSansKr, color = Color.Black)*/,
+            ),
             placeholder = { TextFieldPlaceholderOrSupporting(isPlaceholder = true, text = "$mean ${stringResource(id = R.string.sign_up_placeholder)}", correct = true)},
             interactionSource = MutableInteractionSource(),
             visualTransformation = visualTransformation,
@@ -341,9 +333,7 @@ fun EnterInfoMultiColumn(mean: String, enabled: Boolean, tfValue: MutableState<S
             onValueChange = { tfValue.value = it},
             textStyle = TextStyle(
                 fontFamily = notoSansKr,
-                platformStyle = PlatformTextStyle(
-                    includeFontPadding = false
-                ),
+                platformStyle = PlatformTextStyle(includeFontPadding = false),
                 color = Color.Black
             ),
             placeholder = { TextFieldPlaceholderOrSupporting(isPlaceholder = true, text = "$mean ${stringResource(id = R.string.sign_up_placeholder)}", correct = true)},
@@ -373,7 +363,7 @@ fun selectRadioButton(string: List<String>): String {
                     ) { selectedOption = role }
             ) {
                 RadioButton(
-                    selected = (role == selectedOption), // role 있으면 거기에 없으면 처음 거에
+                    selected = (role == selectedOption),
                     onClick = null,
                     colors = RadioButtonDefaults.colors(
                         selectedColor = Color.Blue.copy(0.2f),

@@ -36,7 +36,7 @@ class AnnouncementViewModel: ViewModel() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val announcementList = mutableListOf<AnnouncementResponse>()
 
-                for (childSnapshot in snapshot.children) {
+                for (childSnapshot in snapshot.children.reversed()) {
                     val content = childSnapshot.child(context.getString(R.string.database_content)).getValue(String::class.java) ?: ""
                     val date = childSnapshot.child(context.getString(R.string.database_date)).getValue(String::class.java) ?: ""
                     val no = childSnapshot.child(context.getString(R.string.database_no)).getValue(Int::class.java) ?: 0

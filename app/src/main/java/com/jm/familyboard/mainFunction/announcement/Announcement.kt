@@ -74,16 +74,13 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                     )
                 } else {
                     announcementList.value.forEach { announcement ->
-                        val date = if(announcement.date.split("/")[0] > currentDate.split("/")[0]) announcement.date.split("/")[0]
-                                    else announcement.date.split("/")[1].split(".")[0]
                         AllList(
                             screenType = 0,
-                            flag = false,
                             modify = announcementViewModel.vmModify,
-                            no = 0,
+                            answerCount = 0L,
                             title = announcement.title,
                             content = announcement.content,
-                            date = date,
+                            date = announcement.date,
                             writer = announcement.writer,
                             answer = "",
                             writerUid = announcement.writerUid
