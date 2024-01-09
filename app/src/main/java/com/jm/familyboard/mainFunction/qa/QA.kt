@@ -100,7 +100,7 @@ fun Q_AScreen(mainNavController: NavHostController) {
                             date = qa.no.questionContent.date,
                             writer = qa.no.writer.name,
                             answer = qa.no.answerContent.content,
-                            writerUid = qa.no.writer.uid
+                            writerUid = qa.no.writer.uid,
                         ) {
                             qaViewModel.vmQuestionContent.value = qa.no.questionContent.content
                             qaViewModel.vmQuestionTitle.value = qa.no.questionTitle
@@ -133,9 +133,8 @@ fun Q_AScreen(mainNavController: NavHostController) {
                 .background(Color.White)
                 .fillMaxSize()) {
                 AppBar(false, qaArray[4], null, {}) { currentNavController.popBackStack() }
-                AnswerScreen(qaViewModel.vmQuestionContent, qaViewModel.vmAnswerContent, qaCommentList, {
-                    qaViewModel.loadComment(context)
-                }) {
+                AnswerScreen(qaViewModel.vmQuestionContent, qaViewModel.vmAnswerContent, qaCommentList, { qaViewModel.loadComment(context) }) {
+                    currentNavController.popBackStack()
                     qaViewModel.writeComment(context)
                 }
             }
@@ -196,11 +195,7 @@ fun WriteQuestionScreen(questionTitle: MutableState<String>, questionContent: Mu
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableState<String>, commentList: MutableState<List<AnswerContentResponse>>, loadAnswer: () -> Unit, writeAnswer: () -> Unit) {
-    val enabled = remember { mutableStateOf(false) }
-    LaunchedEffect(enabled.value) {
-        enabled.value = false
-        loadAnswer()
-    }
+    LaunchedEffect(true) { loadAnswer() }
     Column {
         Column(Modifier.weight(0.2f)) {
             EnterInfoMultiColumn(
@@ -264,8 +259,7 @@ fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableSt
                 modifier = Modifier
                     .weight(1f)
                     .padding(vertical = 4.dp),
-                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Default, keyboardType = KeyboardType.Text),
-                singleLine = true,
+                keyboardOptions = textFieldKeyboard(imeAction = ImeAction.None, keyboardType = KeyboardType.Text),
                 colors = textFieldColors(Color.Blue.copy(0.2f))
             )
             TextComposable(
@@ -275,11 +269,8 @@ fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableSt
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
                     .padding(all = 4.dp)
-                    .clickable { if(answerContent.value.isNotEmpty()) enabled.value = true }
+                    .clickable { if (answerContent.value.isNotEmpty()) writeAnswer() }
             )
-            if(enabled.value) {
-                writeAnswer()
-            }
         }
     }
 }

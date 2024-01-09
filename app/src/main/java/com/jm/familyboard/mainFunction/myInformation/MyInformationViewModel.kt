@@ -135,7 +135,9 @@ class MyInformationViewModel: ViewModel() {
             }
 
         })
-        FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").child(context.getString(R.string.family_representative)).removeValue()
+        if(User.uid == User.representativeUid) {
+            FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").child(context.getString(R.string.family_representative)).removeValue()
+        }
         FirebaseDatabase.getInstance().getReference("real/user/email").child(User.email.replace("@", "_").replace(".","_")).removeValue()
         userUidRef.removeValue()
             .addOnSuccessListener {

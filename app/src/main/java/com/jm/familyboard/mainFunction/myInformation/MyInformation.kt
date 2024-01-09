@@ -16,34 +16,47 @@ import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
+import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.RadioButton
 import androidx.compose.material3.Text
+import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
+import androidx.compose.ui.text.PlatformTextStyle
+import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.unit.dp
+import androidx.compose.ui.window.DialogProperties
 import androidx.core.content.ContextCompat.getSystemService
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
+import com.google.firebase.database.DataSnapshot
+import com.google.firebase.database.DatabaseError
+import com.google.firebase.database.FirebaseDatabase
+import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.BuildConfig
 import com.jm.familyboard.R
 import com.jm.familyboard.User
@@ -54,9 +67,13 @@ import com.jm.familyboard.reusable.ConfirmPasswordSupportingText
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
 import com.jm.familyboard.reusable.NewPasswordSupportingText
 import com.jm.familyboard.reusable.TextComposable
+import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
 import com.jm.familyboard.reusable.WhatMean
+import com.jm.familyboard.reusable.checkInvitationCode
 import com.jm.familyboard.reusable.getStoredUserPassword
+import com.jm.familyboard.reusable.notoSansKr
 import com.jm.familyboard.reusable.selectRadioButton
+import com.jm.familyboard.reusable.textFieldColors
 import com.jm.familyboard.reusable.textFieldKeyboard
 
 @Composable
@@ -90,7 +107,7 @@ fun MyInformationScreen(mainNavController: NavHostController) {
                 .background(Color.White)
                 .fillMaxSize()) {
                 AppBar(false, myInformationArray[4], null, {}) { currentNavController.popBackStack() }
-                EditInformation(myInformationViewModel.editName, myInformationViewModel.editRoles, myInformationViewModel.editNewPassword, myInformationViewModel.editConfirmNewPassword)
+                EditInformation(context, myInformationViewModel.editName, myInformationViewModel.editRoles, myInformationViewModel.editNewPassword, myInformationViewModel.editConfirmNewPassword)
                 { myInformationViewModel.updateInfo(context, currentNavController) }
             }
         }
@@ -177,8 +194,18 @@ fun CheckPassword(context: Context, complete: () -> Unit) {
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EditInformation(editName: MutableState<String>, editRoles: MutableState<String>, editNewPassword: MutableState<String>, editConfirmPassword: MutableState<String>, updateInfo: () -> Unit) {
+fun EditInformation(context: Context, editName: MutableState<String>, editRoles: MutableState<String>, editNewPassword: MutableState<String>, editConfirmPassword: MutableState<String>, updateInfo: () -> Unit) {
+    val deleteMember = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/composition")
+    val announcementRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement")
+    val qaRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/q_a")
+    val invitationCodeTest = remember { mutableIntStateOf(0) }
+    val invitationCodeValue = remember { mutableStateOf("") }
+    val invitationCodeEnabled = remember { mutableStateOf(true) }
+    val groupNameThroughCode = remember { mutableStateOf("") }
+    val check = remember { mutableStateOf(false) }
+
     Column {
         Column(modifier = Modifier
             .verticalScroll(rememberScrollState())
@@ -213,6 +240,133 @@ fun EditInformation(editName: MutableState<String>, editRoles: MutableState<Stri
             Spacer(modifier = Modifier.height(10.dp))
             WhatMean(mean = stringResource(id = R.string.my_roles), essential = true)
             editRoles.value = selectRadioButton(stringArrayResource(id = R.array.roles).toList())
+            LaunchedEffect(check.value) {
+//                        checkDuplicate("user/real_user_group_name", invitationCodeValue.value, invitationCodeTest, 2, 1)
+                checkInvitationCode(invitationCodeTest, invitationCodeValue.value, groupNameThroughCode)
+            }
+            Spacer(modifier = Modifier.height(10.dp))
+            WhatMean(mean = stringResource(id = R.string.move_group), essential = false)
+            Row {
+                TextField(
+                    value = invitationCodeValue.value,
+                    onValueChange = { invitationCodeValue.value = it},
+                    textStyle = TextStyle(
+                        fontFamily = notoSansKr,
+                        platformStyle = PlatformTextStyle(includeFontPadding = false),
+                        color = if(invitationCodeEnabled.value) Color.Black else Color.DarkGray.copy(0.5f)
+                    ),
+                    enabled = invitationCodeEnabled.value,
+                    placeholder = { TextFieldPlaceholderOrSupporting(true, "${stringResource(id = R.string.sign_up_invite_code)} ${stringResource(id = R.string.sign_up_placeholder)}",true) },
+                    visualTransformation = VisualTransformation.None,
+                    modifier = Modifier
+                        .weight(1f)
+                        .padding(end = 4.dp)
+                        .fillMaxSize(),
+                    keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
+                    singleLine = true,
+                    colors = textFieldColors(Color.Blue.copy(0.2f))
+                )
+                Button(onClick = { check.value = true }) {
+                    Text(text = stringResource(id = R.string.check))
+                }
+                if(check.value) {
+                    AlertDialog(
+                        onDismissRequest = { check.value = false },
+                        text = {
+                            Column(modifier = Modifier.fillMaxWidth()) {
+                                when(invitationCodeTest.intValue) {
+                                    1 -> {
+                                        TextComposable(
+                                            text = stringResource(id = R.string.sign_up_not_exist_invite_code),
+                                            style = MaterialTheme.typography.labelMedium.copy(Color.Black),
+                                            fontWeight = FontWeight.Normal,
+                                            modifier = Modifier
+                                        )
+                                    }
+                                    2 -> {
+                                        TextComposable(
+                                            text = "[${groupNameThroughCode.value}] ${stringResource(id = R.string.move_group_info)}",
+                                            style = MaterialTheme.typography.labelMedium.copy(Color.Black),
+                                            fontWeight = FontWeight.Normal,
+                                            modifier = Modifier
+                                        )
+                                    }
+                                }
+                            }
+                        },
+                        containerColor = Color.White,
+                        confirmButton = {
+                            TextComposable(
+                                text = stringResource(id = R.string.check),
+                                style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
+                                fontWeight = FontWeight.Normal,
+                                modifier = Modifier.clickable {
+                                    deleteMember.addListenerForSingleValueEvent(object :
+                                        ValueEventListener {
+                                        override fun onDataChange(snapshot: DataSnapshot) {
+                                            snapshot.child(User.uid).ref.removeValue()
+                                            if (snapshot.childrenCount < 1) {
+                                                FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").ref.removeValue()
+                                                FirebaseDatabase.getInstance().getReference("real/group_name_and_invitation_code").child(User.groupName).ref.removeValue()
+                                            }
+                                        }
+
+                                        override fun onCancelled(error: DatabaseError) {
+                                        }
+                                    })
+                                    announcementRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                                        override fun onDataChange(snapshot: DataSnapshot) {
+                                            for(childSnapshot in snapshot.children) {
+                                                val writerUid = childSnapshot.child(context.getString(R.string.database_writer_uid)).getValue(String::class.java) ?: ""
+                                                if(User.uid == writerUid) {
+                                                    FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement/${childSnapshot.key}").removeValue()
+                                                }
+                                            }
+                                        }
+
+                                        override fun onCancelled(error: DatabaseError) {
+                                        }
+
+                                    })
+                                    qaRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                                        override fun onDataChange(snapshot: DataSnapshot) {
+                                            for(childSnapshot in snapshot.children) {
+                                                val writerRef = childSnapshot.child(context.getString(R.string.database_writer))
+                                                val writerUid = writerRef.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
+                                                val answerContentUid = childSnapshot.child(context.getString(R.string.database_answer_content)).child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
+                                                if(answerContentUid == User.uid) {
+                                                    qaRef.child("${childSnapshot.key}").child(context.getString(R.string.database_flag)).setValue(false)
+                                                    childSnapshot.child(context.getString(R.string.database_answer_content)).ref.removeValue()
+                                                }
+                                                if(writerUid == User.uid) {
+                                                    qaRef.child("${childSnapshot.key}").removeValue()
+                                                }
+                                            }
+                                        }
+
+                                        override fun onCancelled(error: DatabaseError) {
+                                        }
+
+                                    })
+                                    check.value = false }
+                            )
+                        },
+                        dismissButton = {
+                            TextComposable(
+                                text = stringResource(id = R.string.not),
+                                style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
+                                fontWeight = FontWeight.Normal,
+                                modifier = Modifier.clickable {
+                                    invitationCodeEnabled.value = true
+                                    check.value = false
+                                }
+                            )
+                        },
+                        properties = DialogProperties(usePlatformDefaultWidth = false),
+                        modifier = Modifier.padding(horizontal = 10.dp)
+                    )
+                }
+            }
         }
         CompleteButton(
             isEnable = if(editNewPassword.value.trim().isNotEmpty() || editConfirmPassword.value.trim().isNotEmpty()) editNewPassword.value == editConfirmPassword.value else true,
