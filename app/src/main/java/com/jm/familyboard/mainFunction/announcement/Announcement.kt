@@ -138,7 +138,7 @@ fun RegisterNotice(vmModify: Boolean, vmTitle: MutableState<String>, vmContent: 
                         .padding(horizontal = 10.dp)
                 )
                 TextComposable(
-                    text = if(vmModify) "${stringResource(R.string.first_register_date)} ${vmWriteDate.split(",")[0]}" else "${stringResource(id = R.string.register_date)} ${vmWriteDate.split(",")[0]}",
+                    text = if(vmModify) "${stringResource(R.string.first_register_date)} ${vmWriteDate.split(",")[0]}" else "${stringResource(R.string.register_date)} ${vmWriteDate.substring(0, 2)}. ${vmWriteDate.substring(2, 4)}. ${vmWriteDate.substring(4, 6)}",
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Black),
                     fontWeight = FontWeight.Light,
                     modifier = Modifier

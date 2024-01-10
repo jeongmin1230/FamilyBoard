@@ -3,10 +3,10 @@ package com.jm.familyboard.mainFunction.myInformation
 import android.content.ClipData
 import android.content.ClipboardManager
 import android.content.Context
+import android.content.Intent
 import android.widget.Toast
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
@@ -21,8 +21,6 @@ import androidx.compose.material3.Button
 import androidx.compose.material3.Divider
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.RadioButton
-import androidx.compose.material3.Text
 import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
@@ -32,9 +30,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
-import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.focus.onFocusChanged
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
@@ -58,6 +54,7 @@ import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.BuildConfig
+import com.jm.familyboard.Login
 import com.jm.familyboard.R
 import com.jm.familyboard.User
 import com.jm.familyboard.reusable.AppBar
@@ -70,6 +67,7 @@ import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
 import com.jm.familyboard.reusable.WhatMean
 import com.jm.familyboard.reusable.checkInvitationCode
+import com.jm.familyboard.reusable.generateDB
 import com.jm.familyboard.reusable.getStoredUserPassword
 import com.jm.familyboard.reusable.notoSansKr
 import com.jm.familyboard.reusable.selectRadioButton
@@ -197,9 +195,6 @@ fun CheckPassword(context: Context, complete: () -> Unit) {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun EditInformation(context: Context, editName: MutableState<String>, editRoles: MutableState<String>, editNewPassword: MutableState<String>, editConfirmPassword: MutableState<String>, updateInfo: () -> Unit) {
-    val deleteMember = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/composition")
-    val announcementRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement")
-    val qaRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/q_a")
     val invitationCodeTest = remember { mutableIntStateOf(0) }
     val invitationCodeValue = remember { mutableStateOf("") }
     val invitationCodeEnabled = remember { mutableStateOf(true) }
@@ -267,7 +262,11 @@ fun EditInformation(context: Context, editName: MutableState<String>, editRoles:
                     colors = textFieldColors(Color.Blue.copy(0.2f))
                 )
                 Button(onClick = { check.value = true }) {
-                    Text(text = stringResource(id = R.string.check))
+                    TextComposable(
+                        text = stringResource(id = R.string.check),
+                        style = MaterialTheme.typography.labelMedium.copy(Color.Black),
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier)
                 }
                 if(check.value) {
                     AlertDialog(
@@ -296,60 +295,76 @@ fun EditInformation(context: Context, editName: MutableState<String>, editRoles:
                         },
                         containerColor = Color.White,
                         confirmButton = {
-                            TextComposable(
-                                text = stringResource(id = R.string.check),
-                                style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
-                                fontWeight = FontWeight.Normal,
-                                modifier = Modifier.clickable {
-                                    deleteMember.addListenerForSingleValueEvent(object :
-                                        ValueEventListener {
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            snapshot.child(User.uid).ref.removeValue()
-                                            if (snapshot.childrenCount < 1) {
-                                                FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").ref.removeValue()
-                                                FirebaseDatabase.getInstance().getReference("real/group_name_and_invitation_code").child(User.groupName).ref.removeValue()
-                                            }
-                                        }
+                            if(invitationCodeTest.intValue == 2) {
+                                TextComposable(
+                                    text = stringResource(id = R.string.check),
+                                    style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
+                                    fontWeight = FontWeight.Normal,
+                                    modifier = Modifier.clickable {
+                                        val emailRef = FirebaseDatabase.getInstance().getReference("real/user/email")
+                                        emailRef.child(User.email.replace("@", "_").replace(".", "_")).setValue("email")
+                                        generateDB("real/service/${groupNameThroughCode.value}/composition/${User.uid}", groupNameThroughCode.value, User.email, User.name, User.roles)
+                                        generateDB("real/user/real_user/${User.uid}", groupNameThroughCode.value, User.email, User.name, User.roles)
 
-                                        override fun onCancelled(error: DatabaseError) {
-                                        }
-                                    })
-                                    announcementRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            for(childSnapshot in snapshot.children) {
-                                                val writerUid = childSnapshot.child(context.getString(R.string.database_writer_uid)).getValue(String::class.java) ?: ""
-                                                if(User.uid == writerUid) {
-                                                    FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement/${childSnapshot.key}").removeValue()
+                                        val deleteMember = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/composition")
+                                        val announcementRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement")
+                                        val qaRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/q_a")
+                                        deleteMember.addListenerForSingleValueEvent(object : ValueEventListener {
+                                            override fun onDataChange(snapshot: DataSnapshot) {
+                                                snapshot.child(User.uid).ref.removeValue()
+                                                if (snapshot.childrenCount <= 1) {
+                                                    FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").ref.removeValue()
+                                                    FirebaseDatabase.getInstance().getReference("real/group_name_and_invitation_code").child(User.groupName).ref.removeValue()
                                                 }
                                             }
-                                        }
 
-                                        override fun onCancelled(error: DatabaseError) {
-                                        }
-
-                                    })
-                                    qaRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                                        override fun onDataChange(snapshot: DataSnapshot) {
-                                            for(childSnapshot in snapshot.children) {
-                                                val writerRef = childSnapshot.child(context.getString(R.string.database_writer))
-                                                val writerUid = writerRef.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
-                                                val answerContentUid = childSnapshot.child(context.getString(R.string.database_answer_content)).child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
-                                                if(answerContentUid == User.uid) {
-                                                    qaRef.child("${childSnapshot.key}").child(context.getString(R.string.database_flag)).setValue(false)
-                                                    childSnapshot.child(context.getString(R.string.database_answer_content)).ref.removeValue()
-                                                }
-                                                if(writerUid == User.uid) {
-                                                    qaRef.child("${childSnapshot.key}").removeValue()
+                                            override fun onCancelled(error: DatabaseError) {
+                                            }
+                                        })
+                                        announcementRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                                            override fun onDataChange(snapshot: DataSnapshot) {
+                                                for(childSnapshot in snapshot.children) {
+                                                    val writerUid = childSnapshot.child(context.getString(R.string.database_writer_uid)).getValue(String::class.java) ?: ""
+                                                    if(User.uid == writerUid) {
+                                                        FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement/${childSnapshot.key}").removeValue()
+                                                    }
                                                 }
                                             }
-                                        }
 
-                                        override fun onCancelled(error: DatabaseError) {
-                                        }
+                                            override fun onCancelled(error: DatabaseError) {
+                                            }
 
-                                    })
-                                    check.value = false }
-                            )
+                                        })
+                                        qaRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                                            override fun onDataChange(snapshot: DataSnapshot) {
+                                                for(childSnapshot in snapshot.children) {
+                                                    val writerRef = childSnapshot.child(context.getString(R.string.database_writer))
+                                                    val writerUid = writerRef.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
+                                                    val answerContentUid = childSnapshot.child(context.getString(R.string.database_answer_content)).child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
+                                                    if(answerContentUid == User.uid) {
+                                                        qaRef.child("${childSnapshot.key}").child(context.getString(R.string.database_flag)).setValue(false)
+                                                        childSnapshot.child(context.getString(R.string.database_answer_content)).ref.removeValue()
+                                                    }
+                                                    if(writerUid == User.uid) {
+                                                        qaRef.child("${childSnapshot.key}").removeValue()
+                                                    }
+                                                }
+                                            }
+
+                                            override fun onCancelled(error: DatabaseError) {
+                                            }
+
+                                        })
+                                        if(User.uid == User.representativeUid) {
+                                            FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").child(context.getString(R.string.family_representative)).removeValue()
+                                        }
+                                        val intent = Intent(context, Login::class.java)
+                                        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+                                        context.startActivity(intent)
+                                        check.value = false
+                                    }
+                                )
+                            }
                         },
                         dismissButton = {
                             TextComposable(

@@ -73,13 +73,13 @@ class QAViewModel: ViewModel() {
                     vmAnswerDate.value = dateInAC
                     vmFlag.value = flag
                     val qa = QAResponse(
-                            QAResponse.No(
-                                QAResponse.No.AnswerContent(answerContent.childrenCount, contentInAC, vmAnswerDate.value),
-                                no,
-                                QAResponse.No.QuestionContent(contentInQC, dateInQC),
-                                questionTitle,
-                                QAResponse.No.Writer(nameInWriter, uidInWriter)
-                            )
+                        QAResponse.No(
+                            QAResponse.No.AnswerContent(answerContent.childrenCount, contentInAC, vmAnswerDate.value),
+                            no,
+                            QAResponse.No.QuestionContent(contentInQC, dateInQC),
+                            questionTitle,
+                            QAResponse.No.Writer(nameInWriter, uidInWriter)
+                        )
                     )
                     qaList.add(qa)
                 }
@@ -121,19 +121,17 @@ class QAViewModel: ViewModel() {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val answerContentList = mutableListOf<AnswerContentResponse>()
                 for(childSnapshot in snapshot.children) {
-                    val answerContentSnapshot = childSnapshot.child("answerContent")
-
-                    answerContentSnapshot.children.forEach { answerSnapshot ->
-                        val commentContent  = answerSnapshot.child(context.getString(R.string.database_content)).getValue(String::class.java) ?: ""
-                        val commentDate = answerSnapshot.child(context.getString(R.string.database_date)).getValue(String::class.java) ?: ""
-                        val commentName = answerSnapshot.child(context.getString(R.string.database_name)).getValue(String::class.java) ?: ""
-                        val commentUid = answerSnapshot.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
-                        val answerContent = AnswerContentResponse(commentContent, commentDate, commentName, commentUid)
-                        answerContentList.add(answerContent)
+                    if(childSnapshot.key == "no${vmQuestionNo.intValue}") {
+                        childSnapshot.child("answerContent").children.forEach { answerSnapshot ->
+                            val commentContent  = answerSnapshot.child(context.getString(R.string.database_content)).getValue(String::class.java) ?: ""
+                            val commentDate = answerSnapshot.child(context.getString(R.string.database_date)).getValue(String::class.java) ?: ""
+                            val commentName = answerSnapshot.child(context.getString(R.string.database_name)).getValue(String::class.java) ?: ""
+                            val commentUid = answerSnapshot.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
+                            val answerContent = AnswerContentResponse(commentContent, commentDate, commentName, commentUid)
+                            answerContentList.add(answerContent)
+                        }
                     }
-                    println("answerContentList : $answerContentList")
                     comments.value = answerContentList
-                    println("comments.value ${comments.value}")
                 }
             }
 

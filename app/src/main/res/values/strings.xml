@@ -122,7 +122,7 @@
     <string name="my_invitation_code">초대 코드</string>
     <string name="check">확인</string>
     <string name="move_group">그룹 이동</string>
-    <string name="move_group_info">그룹을 찾았습니다.\n이 그룹으로 이동할까요?\n이 그룹에서의 활동 내역이 모두 삭제됩니다.</string>
+    <string name="move_group_info">그룹을 찾았습니다.\n이 그룹으로 이동할까요?\n확인을 누르면 이 그룹에서 모든 글이 삭제되고 이동합니다.</string>
     <string name="copy_my_invitation_code">코드 복사</string>
     <string name="app_information">앱 정보</string>
     <string name="app_version_name">버전</string>
