@@ -36,6 +36,7 @@ import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.EnterInfoMultiColumn
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
+import com.jm.familyboard.reusable.HowToUseColumn
 import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.textFieldKeyboard
 import java.text.SimpleDateFormat
@@ -64,13 +65,15 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                 LaunchedEffect(announcementList) { announcementViewModel.loadData(context) }
 
                 Spacer(modifier = Modifier.height(20.dp))
-
+                HowToUseColumn(text = stringResource(id = R.string.announcement_information))
+                Spacer(modifier = Modifier.height(10.dp))
+                
                 if(announcementList.value.isEmpty()) {
                     TextComposable(
                         text = stringResource(id = R.string.empty_screen),
                         style = MaterialTheme.typography.titleLarge.copy(color = Color.Black),
                         fontWeight = FontWeight.Normal,
-                        modifier = Modifier
+                        modifier = Modifier.padding(start = 10.dp)
                     )
                 } else {
                     announcementList.value.forEach { announcement ->

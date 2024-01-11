@@ -7,14 +7,15 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.R
 import com.jm.familyboard.User
 import com.jm.familyboard.datamodel.AnswerContentResponse
 import com.jm.familyboard.datamodel.QAResponse
+import com.jm.familyboard.reusable.FirebaseAllPath
 
 class QAViewModel: ViewModel() {
+    private val qa = FirebaseAllPath.database.getReference(FirebaseAllPath.SERVICE + User.groupName + "/q_a")
     var qas = mutableStateOf(listOf<QAResponse>())
     var comments = mutableStateOf(listOf<AnswerContentResponse>())
 
@@ -27,17 +28,10 @@ class QAViewModel: ViewModel() {
     var vmAnswerContent = mutableStateOf("")
     var vmAnswerDate = mutableStateOf("")
 
-    var vmFlag = mutableStateOf(false)
-
-    private val qaReference = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/q_a")
-    private val writeAnswerReference = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/q_a")
-
-
     fun init() {
         vmQuestionNo.intValue = 0
         vmQuestionTitle.value = ""
         vmQuestionContent.value = ""
-        vmFlag.value = false
         vmAnswerContent.value = ""
     }
 
@@ -49,10 +43,6 @@ class QAViewModel: ViewModel() {
                     val answerContent = childSnapshot.child(context.getString(R.string.database_answer_content))
                     val contentInAC = answerContent.child(context.getString(R.string.database_content)).getValue(String::class.java) ?: ""
                     val dateInAC = answerContent.child(context.getString(R.string.database_date)).getValue(String::class.java) ?: ""
-                    val writerInAC = answerContent.child(context.getString(R.string.database_name)).getValue(String::class.java) ?: ""
-                    val writerUidInAC = answerContent.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
-
-                    val flag = childSnapshot.child(context.getString(R.string.database_flag)).getValue(Boolean::class.java) ?: false
 
                     val no = childSnapshot.child(context.getString(R.string.database_no)).getValue(Int::class.java) ?: 0
 
@@ -71,7 +61,6 @@ class QAViewModel: ViewModel() {
                     vmQuestionDate.value = dateInQC
                     vmAnswerContent.value = contentInAC
                     vmAnswerDate.value = dateInAC
-                    vmFlag.value = flag
                     val qa = QAResponse(
                         QAResponse.No(
                             QAResponse.No.AnswerContent(answerContent.childrenCount, contentInAC, vmAnswerDate.value),
@@ -90,14 +79,14 @@ class QAViewModel: ViewModel() {
                 println(error.message)
             }
         }
-        qaReference.addValueEventListener(valueEventListener)
+        qa.addValueEventListener(valueEventListener)
     }
 
     fun writeQuestion(context: Context, currentNavController: NavHostController) {
-        qaReference.addListenerForSingleValueEvent(object : ValueEventListener {
+        qa.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val nextNo = snapshot.childrenCount + 1
-                val ref =  qaReference.child("no$nextNo")
+                val ref =  qa.child("no$nextNo")
                 ref.child(context.getString(R.string.database_no)).setValue(nextNo)
                 val qcRef = ref.child(context.getString(R.string.database_question_content))
                 qcRef.child(context.getString(R.string.database_content)).setValue(vmQuestionContent.value)
@@ -115,8 +104,6 @@ class QAViewModel: ViewModel() {
     }
 
     fun loadComment(context: Context) {
-        val answerRef = writeAnswerReference.child("no${vmQuestionNo.intValue}")
-        println("answerRef : $answerRef")
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val answerContentList = mutableListOf<AnswerContentResponse>()
@@ -139,11 +126,11 @@ class QAViewModel: ViewModel() {
             }
 
         }
-        qaReference.addListenerForSingleValueEvent(valueEventListener)
+        qa.addListenerForSingleValueEvent(valueEventListener)
     }
 
     fun writeComment(context: Context) {
-        val answerRef = writeAnswerReference.child("no${vmQuestionNo.intValue}")
+        val answerRef = qa.child("no${vmQuestionNo.intValue}")
         answerRef.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 val answerContentsRef = answerRef.child(context.getString(R.string.database_answer_content))

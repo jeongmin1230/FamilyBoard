@@ -62,6 +62,7 @@ import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.ConfirmDialog
 import com.jm.familyboard.reusable.ConfirmPasswordSupportingText
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
+import com.jm.familyboard.reusable.HowToUseColumn
 import com.jm.familyboard.reusable.NewPasswordSupportingText
 import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
@@ -106,7 +107,7 @@ fun MyInformationScreen(mainNavController: NavHostController) {
                 .fillMaxSize()) {
                 AppBar(false, myInformationArray[4], null, {}) { currentNavController.popBackStack() }
                 EditInformation(context, myInformationViewModel.editName, myInformationViewModel.editRoles, myInformationViewModel.editNewPassword, myInformationViewModel.editConfirmNewPassword)
-                { myInformationViewModel.updateInfo(context, currentNavController) }
+                { myInformationViewModel.updateInfo(context) }
             }
         }
     }
@@ -118,6 +119,7 @@ fun MyInformation(invitationCode: MutableState<String>, logoutAction: () -> Unit
     val confirmWithdrawal = remember { mutableStateOf(false) }
     Column(Modifier.verticalScroll(rememberScrollState())) {
         Spacer(modifier = Modifier.height(10.dp))
+        HowToUseColumn(text = stringResource(id = R.string.my_information_information))
 
         WhatMean(mean = stringResource(id = R.string.app_information), essential = false)
         RowLayout(mean = stringResource(id = R.string.app_version_name), info = BuildConfig.VERSION_NAME) {}

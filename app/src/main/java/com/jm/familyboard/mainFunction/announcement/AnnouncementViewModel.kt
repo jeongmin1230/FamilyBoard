@@ -7,28 +7,28 @@ import androidx.lifecycle.ViewModel
 import androidx.navigation.NavHostController
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.R
 import com.jm.familyboard.User
 import com.jm.familyboard.datamodel.AnnouncementResponse
+import com.jm.familyboard.reusable.FirebaseAllPath
 
 class AnnouncementViewModel: ViewModel() {
+    private val announcementReference = FirebaseAllPath.database.getReference(FirebaseAllPath.SERVICE + "${User.groupName}/announcement")
     var announcements = mutableStateOf(listOf<AnnouncementResponse>())
-    private val announcementReference = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement")
 
     var vmTitle = mutableStateOf("")
     var vmContent = mutableStateOf("")
     var vmWriteDate = mutableStateOf("")
-
     var vmModify = mutableStateOf(false)
-
     var vmWritingNo = mutableIntStateOf(0)
 
     fun init() {
         vmModify.value = false
         vmTitle.value = ""
         vmContent.value = ""
+        vmWriteDate.value = ""
+        vmWritingNo.intValue = 0
     }
 
     fun loadData(context: Context) {
@@ -44,11 +44,10 @@ class AnnouncementViewModel: ViewModel() {
                     val writer = childSnapshot.child(context.getString(R.string.database_writer)).getValue(String::class.java) ?: ""
                     val writerUid = childSnapshot.child(context.getString(R.string.database_writer_uid)).getValue(String::class.java) ?: ""
 
-                    if(User.uid == writerUid) println("User.uid == writerUid ${childSnapshot.key}")
-
-                    val announcement = AnnouncementResponse(content, date, no, title, writer, writerUid)
                     vmTitle.value = title
                     vmContent.value = content
+
+                    val announcement = AnnouncementResponse(content, date, no, title, writer, writerUid)
                     announcementList.add(announcement)
                     announcements.value = announcementList
                 }

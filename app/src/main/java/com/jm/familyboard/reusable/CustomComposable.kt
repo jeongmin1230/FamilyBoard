@@ -45,7 +45,6 @@ import androidx.compose.ui.Modifier
 import com.jm.familyboard.R
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
-import androidx.compose.ui.graphics.painter.Painter
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
@@ -60,7 +59,6 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.text.substring
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
@@ -202,32 +200,30 @@ fun AllList(screenType: Int, modify: MutableState<Boolean>, answerCount: Long, t
     Column(
         modifier = Modifier
             .combinedClickable(
-                onClick = { if(screenType == 0) showDetail.value = !showDetail.value },
+                onClick = {
+                    if(screenType == 0) showDetail.value = !showDetail.value
+                    else if(screenType == 1) clickAction()
+                },
                 onLongClick = {
-                    when(screenType) {
-                        0 -> {
-                            showDialog = if(User.uid == writerUid) { true }
-                            else {
-                                Toast.makeText(context, context.getString(R.string.announcement_edit_warning), Toast.LENGTH_SHORT).show()
-                                false
-                            }
-                        }
-                        1 -> {
-                            showDialog = true
-                        }
+                    if(screenType == 0) {
+                        showDialog = if(User.uid == writerUid) { true }
+                                    else {
+                                        Toast.makeText(context, context.getString(R.string.announcement_edit_warning), Toast.LENGTH_SHORT).show()
+                                        false
+                                    }
                     }
                 }
             )
     ) {
         val currentDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis())).split(":")[0]
         val dateSplit = date.split(":")
-        val splitDate = if(dateSplit[0].toInt() >= currentDate.toInt()) "${dateSplit[1].substring(0, 2)} : ${dateSplit[1].substring(2, 4)}"
+        val compareDate = if(dateSplit[0].toInt() >= currentDate.toInt()) "${dateSplit[1].substring(0, 2)} : ${dateSplit[1].substring(2, 4)}"
                         else "${dateSplit[0].substring(0, 2)}. ${dateSplit[0].substring(2, 4)}. ${dateSplit[0].substring(4, 6)}"
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(all = 10.dp)) {
             TextComposable(
-                text = splitDate,
+                text = compareDate,
                 style = MaterialTheme.typography.labelSmall.copy(Color.DarkGray),
                 fontWeight = FontWeight.Normal,
                 modifier = Modifier.align(Alignment.Start)
@@ -278,21 +274,14 @@ fun AllList(screenType: Int, modify: MutableState<Boolean>, answerCount: Long, t
     }
     Divider(Modifier.border(BorderStroke(1.dp, Color.DarkGray)))
 
-        if(showDialog) {
-            when(screenType) {
-                0 -> {
-                    ConfirmDialog(screenType = 0, onDismiss = { showDialog = false }, content = title ) {
-                        modify.value = true
-                        clickAction()
-                    }
-                }
-                1 -> {
-                    ConfirmDialog(screenType = 1, onDismiss = { showDialog = false }, content = title) {
-                        clickAction()
-                    }
-                }
+    if(showDialog) {
+        if(screenType == 0) {
+            ConfirmDialog(screenType = 0, onDismiss = { showDialog = false }, content = title ) {
+                modify.value = true
+                clickAction()
             }
         }
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)

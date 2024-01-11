@@ -47,6 +47,7 @@ import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.EnterInfoMultiColumn
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
+import com.jm.familyboard.reusable.HowToUseColumn
 import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
 import com.jm.familyboard.reusable.notoSansKr
@@ -56,7 +57,6 @@ import com.jm.familyboard.ui.theme.FamilyBoardTheme
 import java.text.SimpleDateFormat
 import java.util.Date
 
-@OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("SimpleDateFormat")
 @Composable
 fun Q_AScreen(mainNavController: NavHostController) {
@@ -81,13 +81,14 @@ fun Q_AScreen(mainNavController: NavHostController) {
                 LaunchedEffect(qaList) { qaViewModel.loadData(context) }
 
                 Spacer(modifier = Modifier.height(20.dp))
+                HowToUseColumn(text = stringResource(id = R.string.q_a_information))
 
                 if(qaList.value.isEmpty()) {
                     TextComposable(
                         text = stringResource(id = R.string.empty_screen),
                         style = MaterialTheme.typography.titleLarge.copy(color = Color.Black),
                         fontWeight = FontWeight.Bold,
-                        modifier = Modifier
+                        modifier = Modifier.padding(start = 10.dp)
                     )
                 } else {
                     qaList.value.forEach { qa ->

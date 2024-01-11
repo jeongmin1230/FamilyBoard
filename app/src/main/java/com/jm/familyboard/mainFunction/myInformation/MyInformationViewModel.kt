@@ -5,7 +5,6 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import androidx.navigation.NavHostController
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
@@ -15,14 +14,12 @@ import com.jm.familyboard.Login
 import com.jm.familyboard.MainActivity
 import com.jm.familyboard.R
 import com.jm.familyboard.User
+import com.jm.familyboard.reusable.FirebaseAllPath
 import com.jm.familyboard.reusable.removeUserCredentials
 
 class MyInformationViewModel: ViewModel() {
-    private val currentUser = FirebaseAuth.getInstance().currentUser
-    private val deleteMember = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/composition")
-    private val userUidRef = FirebaseDatabase.getInstance().getReference("real/user/real_user/${User.uid}")
-    private val announcementRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement")
-    private val qaRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/q_a")
+    private val infoInGroup = FirebaseAllPath.database.getReference(FirebaseAllPath.SERVICE + User.groupName)
+    private val userInfo = FirebaseAllPath.database.getReference(FirebaseAllPath.USER_INFO + User.uid)
 
     var invitationCode = mutableStateOf("")
     var editName = mutableStateOf(User.name)
@@ -31,7 +28,6 @@ class MyInformationViewModel: ViewModel() {
     var editConfirmNewPassword = mutableStateOf("")
 
     fun findInvitationCode() {
-        val invitationCodeRef = FirebaseDatabase.getInstance().getReference("real/group_name_and_invitation_code")
         val valueEventListener = object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 for(childSnapshot in snapshot.children) {
@@ -45,21 +41,19 @@ class MyInformationViewModel: ViewModel() {
             override fun onCancelled(error: DatabaseError) {
             }
         }
-        invitationCodeRef.addValueEventListener(valueEventListener)
+        FirebaseDatabase.getInstance().getReference(FirebaseAllPath.GROUP_NAME_AND_INVITATION_CODE).addValueEventListener(valueEventListener)
     }
 
-    fun updateInfo(context: Context, currentNavController: NavHostController) {
-        val groupCompositionRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/composition/${User.uid}")
-        groupCompositionRef.child(context.getString(R.string.database_name)).setValue(editName.value)
-        groupCompositionRef.child(context.getString(R.string.database_roles)).setValue(editRoles.value)
-        val userRef = FirebaseDatabase.getInstance().getReference("real/user/real_user/${User.uid}")
-        userRef.child(context.getString(R.string.database_name)).setValue(editName.value)
-        userRef.child(context.getString(R.string.database_roles)).setValue(editRoles.value)
+    fun updateInfo(context: Context) {
+        val userInfoAddressInGroup = infoInGroup.child("/composition/${User.uid}")
+        userInfoAddressInGroup.child(context.getString(R.string.database_name)).setValue(editName.value)
+        userInfoAddressInGroup.child(context.getString(R.string.database_roles)).setValue(editRoles.value)
+        userInfo.child(context.getString(R.string.database_name)).setValue(editName.value)
+        userInfo.child(context.getString(R.string.database_roles)).setValue(editRoles.value)
         if(editNewPassword.value.isNotEmpty() && editConfirmNewPassword.value.isNotEmpty() && editNewPassword.value.trim() == editConfirmNewPassword.value.trim()) {
-            FirebaseAuth.getInstance().currentUser?.updatePassword(editNewPassword.value)
+            FirebaseAllPath.currentUser?.updatePassword(editNewPassword.value)
                 ?.addOnCompleteListener {
                     if(it.isSuccessful) {
-                        currentNavController.popBackStack()
                         Toast.makeText(context, context.getString(R.string.change_password_please_login_again), Toast.LENGTH_SHORT).show()
                         val intent = Intent(context, Login::class.java)
                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
@@ -89,7 +83,7 @@ class MyInformationViewModel: ViewModel() {
     }
 
     fun withdrawal(context: Context) {
-        deleteMember.addListenerForSingleValueEvent(object : ValueEventListener {
+        infoInGroup.child("/composition").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 snapshot.child(User.uid).ref.removeValue()
                 if (snapshot.childrenCount < 1) {
@@ -101,12 +95,12 @@ class MyInformationViewModel: ViewModel() {
             override fun onCancelled(error: DatabaseError) {
             }
         })
-        announcementRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        infoInGroup.child("/announcement").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 for(childSnapshot in snapshot.children) {
                     val writerUid = childSnapshot.child(context.getString(R.string.database_writer_uid)).getValue(String::class.java) ?: ""
                     if(User.uid == writerUid) {
-                        FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement/${childSnapshot.key}").removeValue()
+                        infoInGroup.child("${User.groupName}/announcement/${childSnapshot.key}").removeValue()
                     }
                 }
             }
@@ -115,18 +109,18 @@ class MyInformationViewModel: ViewModel() {
             }
 
         })
-        qaRef.addListenerForSingleValueEvent(object : ValueEventListener {
+        infoInGroup.child("/q_a").addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
                 for(childSnapshot in snapshot.children) {
                     val writerRef = childSnapshot.child(context.getString(R.string.database_writer))
                     val writerUid = writerRef.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
                     val answerContentUid = childSnapshot.child(context.getString(R.string.database_answer_content)).child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
                     if(answerContentUid == User.uid) {
-                        qaRef.child("${childSnapshot.key}").child(context.getString(R.string.database_flag)).setValue(false)
+                        infoInGroup.child("/q_a").child("${childSnapshot.key}").child(context.getString(R.string.database_flag)).setValue(false)
                         childSnapshot.child(context.getString(R.string.database_answer_content)).ref.removeValue()
                     }
                     if(writerUid == User.uid) {
-                        qaRef.child("${childSnapshot.key}").removeValue()
+                        infoInGroup.child("/q_a").child("${childSnapshot.key}").removeValue()
                     }
                 }
             }
@@ -136,17 +130,17 @@ class MyInformationViewModel: ViewModel() {
 
         })
         if(User.uid == User.representativeUid) {
-            FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").child(context.getString(R.string.family_representative)).removeValue()
+            FirebaseDatabase.getInstance().getReference(FirebaseAllPath.SERVICE + User.groupName).child(context.getString(R.string.family_representative)).removeValue()
         }
-        FirebaseDatabase.getInstance().getReference("real/user/email").child(User.email.replace("@", "_").replace(".","_")).removeValue()
-        userUidRef.removeValue()
+        FirebaseDatabase.getInstance().getReference(FirebaseAllPath.USER_EMAIL).child(User.email.replace("@", "_").replace(".","_")).removeValue()
+        userInfo.removeValue()
             .addOnSuccessListener {
                 Toast.makeText(context, context.getString(R.string.done_withdrawal), Toast.LENGTH_SHORT).show()
             }
             .addOnFailureListener { exception ->
                 println(exception.message)
             }
-        currentUser?.delete()?.addOnCompleteListener { task ->
+        FirebaseAllPath.currentUser?.delete()?.addOnCompleteListener { task ->
             if(task.isSuccessful) {
                 val intent = Intent(context, Login::class.java)
                 intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
