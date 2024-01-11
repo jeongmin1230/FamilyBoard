@@ -12,7 +12,7 @@ android {
         applicationId = "com.jm.familyboard"
         minSdk = 24
         targetSdk = 34
-        versionCode = 6
+        versionCode = 7
         versionName = "2.0.0"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
