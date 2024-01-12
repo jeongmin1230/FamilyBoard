@@ -68,12 +68,15 @@ import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
 import com.jm.familyboard.reusable.WhatMean
 import com.jm.familyboard.reusable.checkInvitationCode
+import com.jm.familyboard.reusable.deleteInfo
 import com.jm.familyboard.reusable.generateDB
 import com.jm.familyboard.reusable.getStoredUserPassword
+import com.jm.familyboard.reusable.logout
 import com.jm.familyboard.reusable.notoSansKr
 import com.jm.familyboard.reusable.selectRadioButton
 import com.jm.familyboard.reusable.textFieldColors
 import com.jm.familyboard.reusable.textFieldKeyboard
+import com.jm.familyboard.reusable.withdrawal
 
 @Composable
 fun MyInformationScreen(mainNavController: NavHostController) {
@@ -90,7 +93,7 @@ fun MyInformationScreen(mainNavController: NavHostController) {
                 .background(Color.White)
                 .fillMaxSize()) {
                 AppBar(true, myInformationArray[0], R.drawable.ic_my_information, { currentNavController.navigate(myInformationArray[3])}) { mainNavController.popBackStack() }
-                MyInformation(invitationCode, { myInformationViewModel.logout(context)}, { myInformationViewModel.withdrawal(context) })
+                MyInformation(context, invitationCode)
             }
         }
         composable(myInformationArray[3]) {
@@ -114,7 +117,7 @@ fun MyInformationScreen(mainNavController: NavHostController) {
 }
 
 @Composable
-fun MyInformation(invitationCode: MutableState<String>, logoutAction: () -> Unit, withdrawalAction: () -> Unit) {
+fun MyInformation(context: Context, invitationCode: MutableState<String>) {
     val confirmLogout = remember { mutableStateOf(false) }
     val confirmWithdrawal = remember { mutableStateOf(false) }
     Column(Modifier.verticalScroll(rememberScrollState())) {
@@ -154,10 +157,10 @@ fun MyInformation(invitationCode: MutableState<String>, logoutAction: () -> Unit
         RowLayout(mean = "", info = stringResource(id = R.string.withdrawal)) { confirmWithdrawal.value = true }
     }
     if(confirmLogout.value) {
-        Logout(confirmLogout) { logoutAction() }
+        Logout(context, confirmLogout)
     }
     if(confirmWithdrawal.value){
-        Withdrawal(confirmWithdrawal) { withdrawalAction() }
+        Withdrawal(context, confirmWithdrawal)
     }
 }
 
@@ -303,63 +306,9 @@ fun EditInformation(context: Context, editName: MutableState<String>, editRoles:
                                     style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
                                     fontWeight = FontWeight.Normal,
                                     modifier = Modifier.clickable {
-                                        val emailRef = FirebaseDatabase.getInstance().getReference("real/user/email")
-                                        emailRef.child(User.email.replace("@", "_").replace(".", "_")).setValue("email")
+                                        deleteInfo(context)
                                         generateDB("real/service/${groupNameThroughCode.value}/composition/${User.uid}", groupNameThroughCode.value, User.email, User.name, User.roles)
                                         generateDB("real/user/real_user/${User.uid}", groupNameThroughCode.value, User.email, User.name, User.roles)
-
-                                        val deleteMember = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/composition")
-                                        val announcementRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement")
-                                        val qaRef = FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/q_a")
-                                        deleteMember.addListenerForSingleValueEvent(object : ValueEventListener {
-                                            override fun onDataChange(snapshot: DataSnapshot) {
-                                                snapshot.child(User.uid).ref.removeValue()
-                                                if (snapshot.childrenCount <= 1) {
-                                                    FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").ref.removeValue()
-                                                    FirebaseDatabase.getInstance().getReference("real/group_name_and_invitation_code").child(User.groupName).ref.removeValue()
-                                                }
-                                            }
-
-                                            override fun onCancelled(error: DatabaseError) {
-                                            }
-                                        })
-                                        announcementRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                                            override fun onDataChange(snapshot: DataSnapshot) {
-                                                for(childSnapshot in snapshot.children) {
-                                                    val writerUid = childSnapshot.child(context.getString(R.string.database_writer_uid)).getValue(String::class.java) ?: ""
-                                                    if(User.uid == writerUid) {
-                                                        FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement/${childSnapshot.key}").removeValue()
-                                                    }
-                                                }
-                                            }
-
-                                            override fun onCancelled(error: DatabaseError) {
-                                            }
-
-                                        })
-                                        qaRef.addListenerForSingleValueEvent(object : ValueEventListener {
-                                            override fun onDataChange(snapshot: DataSnapshot) {
-                                                for(childSnapshot in snapshot.children) {
-                                                    val writerRef = childSnapshot.child(context.getString(R.string.database_writer))
-                                                    val writerUid = writerRef.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
-                                                    val answerContentUid = childSnapshot.child(context.getString(R.string.database_answer_content)).child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
-                                                    if(answerContentUid == User.uid) {
-                                                        qaRef.child("${childSnapshot.key}").child(context.getString(R.string.database_flag)).setValue(false)
-                                                        childSnapshot.child(context.getString(R.string.database_answer_content)).ref.removeValue()
-                                                    }
-                                                    if(writerUid == User.uid) {
-                                                        qaRef.child("${childSnapshot.key}").removeValue()
-                                                    }
-                                                }
-                                            }
-
-                                            override fun onCancelled(error: DatabaseError) {
-                                            }
-
-                                        })
-                                        if(User.uid == User.representativeUid) {
-                                            FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").child(context.getString(R.string.family_representative)).removeValue()
-                                        }
                                         val intent = Intent(context, Login::class.java)
                                         intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
                                         context.startActivity(intent)
@@ -396,22 +345,22 @@ fun EditInformation(context: Context, editName: MutableState<String>, editRoles:
 }
 
 @Composable
-fun Logout(confirmLogout: MutableState<Boolean>, logoutAction: () -> Unit) {
+fun Logout(context: Context, confirmLogout: MutableState<Boolean>) {
     ConfirmDialog(
         screenType = 2,
         onDismiss = { confirmLogout.value = false },
         content = stringResource(id = R.string.do_logout),
-        confirmAction = { logoutAction() }
+        confirmAction = { logout(context) }
     )
 }
 
 @Composable
-fun Withdrawal(confirmWithdrawal: MutableState<Boolean>, withdrawalAction: () -> Unit) {
+fun Withdrawal(context: Context, confirmWithdrawal: MutableState<Boolean>) {
     ConfirmDialog(
         screenType = 2,
         onDismiss = { confirmWithdrawal.value = false },
-        content = stringResource(id = R.string.do_withdrawal),
-        confirmAction = { withdrawalAction() }
+        content = stringResource(id =  R.string.do_withdrawal),
+        confirmAction = { withdrawal(context) }
     )
 }
 

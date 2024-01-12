@@ -7,7 +7,7 @@
     <string name="first">first</string>
     <string name="login">로그인</string>
 
-    <string name="enter_email">이메일</string>
+    <string name="email">이메일</string>
     <string name="enter_password">비밀번호</string>
     <string name="try_again">로그인을 다시 시도 해 주세요</string>
 
@@ -23,12 +23,15 @@
     <string name="sign_up_essential">*</string>
     <string name="sign_up_essential_text">필수 항목 입니다.</string>
     <string name="sign_up_placeholder">을(를) 입력 해 주세요.</string>
-    <string name="sign_up_name">이름</string>
+    <string name="name">이름</string>
+    <string name="check_duplicate">중복확인</string>
+    <string name="check_code">코드확인</string>
+    <string name="cancel">취소</string>
     <string name="sign_up_email">이메일</string>
     <string name="sign_up_email_invalid">이메일 형식이 맞지 않습니다.</string>
-    <string name="sign_up_email_valid_but_duplicate">이메일 형식은 맞으나 중복 됩니다.</string>
-    <string name="sign_up_email_duplicate">이메일이 중복 됩니다.</string>
-    <string name="sign_up_email_valid">사용할 수 있는 이메일 입니다.</string>
+    <string name="sign_up_email_valid_but_duplicate">이메일 형식은 맞으나 중복 됩니다.\n다른 이메일로 다시 시도 해 주세요.</string>
+    <string name="sign_up_email_duplicate">이메일이 중복 됩니다.\n다른 이메일을 사용 해 주세요.</string>
+    <string name="sign_up_email_valid">사용할 수 있는 이메일 입니다.\n이 이메일을 사용하시겠습니까?</string>
 
     <string name="current_password">현재 비밀 번호</string>
     <string name="not_correct_current_password">현재 비밀번호가 알맞지 않습니다. 다시 확인 해 주세요.</string>

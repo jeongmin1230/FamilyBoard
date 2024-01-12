@@ -141,7 +141,7 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
             }
             EnterInfoSingleColumn(
                 essential = false,
-                mean = stringResource(id = R.string.enter_email),
+                mean = stringResource(id = R.string.email),
                 tfValue = email,
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Email),
                 visualTransformation = VisualTransformation.None,

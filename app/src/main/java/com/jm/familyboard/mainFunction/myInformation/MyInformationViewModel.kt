@@ -15,6 +15,7 @@ import com.jm.familyboard.MainActivity
 import com.jm.familyboard.R
 import com.jm.familyboard.User
 import com.jm.familyboard.reusable.FirebaseAllPath
+import com.jm.familyboard.reusable.deleteInfo
 import com.jm.familyboard.reusable.removeUserCredentials
 
 class MyInformationViewModel: ViewModel() {
@@ -80,73 +81,5 @@ class MyInformationViewModel: ViewModel() {
         User.deleteInfo()
         Toast.makeText(context, context.getString(R.string.done_logout), Toast.LENGTH_SHORT).show()
         context.startActivity(intent)
-    }
-
-    fun withdrawal(context: Context) {
-        infoInGroup.child("/composition").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                snapshot.child(User.uid).ref.removeValue()
-                if (snapshot.childrenCount < 1) {
-                    FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}").ref.removeValue()
-                    FirebaseDatabase.getInstance().getReference("real/group_name_and_invitation_code").child(User.groupName).ref.removeValue()
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-            }
-        })
-        infoInGroup.child("/announcement").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for(childSnapshot in snapshot.children) {
-                    val writerUid = childSnapshot.child(context.getString(R.string.database_writer_uid)).getValue(String::class.java) ?: ""
-                    if(User.uid == writerUid) {
-                        infoInGroup.child("${User.groupName}/announcement/${childSnapshot.key}").removeValue()
-                    }
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-            }
-
-        })
-        infoInGroup.child("/q_a").addListenerForSingleValueEvent(object : ValueEventListener {
-            override fun onDataChange(snapshot: DataSnapshot) {
-                for(childSnapshot in snapshot.children) {
-                    val writerRef = childSnapshot.child(context.getString(R.string.database_writer))
-                    val writerUid = writerRef.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
-                    val answerContentUid = childSnapshot.child(context.getString(R.string.database_answer_content)).child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
-                    if(answerContentUid == User.uid) {
-                        infoInGroup.child("/q_a").child("${childSnapshot.key}").child(context.getString(R.string.database_flag)).setValue(false)
-                        childSnapshot.child(context.getString(R.string.database_answer_content)).ref.removeValue()
-                    }
-                    if(writerUid == User.uid) {
-                        infoInGroup.child("/q_a").child("${childSnapshot.key}").removeValue()
-                    }
-                }
-            }
-
-            override fun onCancelled(error: DatabaseError) {
-            }
-
-        })
-        if(User.uid == User.representativeUid) {
-            FirebaseDatabase.getInstance().getReference(FirebaseAllPath.SERVICE + User.groupName).child(context.getString(R.string.family_representative)).removeValue()
-        }
-        FirebaseDatabase.getInstance().getReference(FirebaseAllPath.USER_EMAIL).child(User.email.replace("@", "_").replace(".","_")).removeValue()
-        userInfo.removeValue()
-            .addOnSuccessListener {
-                Toast.makeText(context, context.getString(R.string.done_withdrawal), Toast.LENGTH_SHORT).show()
-            }
-            .addOnFailureListener { exception ->
-                println(exception.message)
-            }
-        FirebaseAllPath.currentUser?.delete()?.addOnCompleteListener { task ->
-            if(task.isSuccessful) {
-                val intent = Intent(context, Login::class.java)
-                intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-                User.deleteInfo()
-                context.startActivity(intent)
-            }
-        }
     }
 }

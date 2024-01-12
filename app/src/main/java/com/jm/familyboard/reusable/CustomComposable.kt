@@ -79,6 +79,21 @@ val notoSansKr = FontFamily(
     Font(R.font.notosanskr_thin, FontWeight.Thin, FontStyle.Normal)
 )
 
+val textSetting = TextStyle(
+    fontFamily = notoSansKr,
+    platformStyle = PlatformTextStyle(includeFontPadding = false),
+    color = Color.Black
+)
+
+@Composable
+fun textSetting(editable: Boolean): TextStyle {
+    return TextStyle(
+        fontFamily = notoSansKr,
+        platformStyle = PlatformTextStyle(includeFontPadding = false),
+        color = if(editable) Color.Black else Color.Gray
+    )
+}
+
 @Composable
 fun Loading(loading: MutableState<Boolean>) {
     val composition by rememberLottieComposition(LottieCompositionSpec.RawRes(R.raw.loading))

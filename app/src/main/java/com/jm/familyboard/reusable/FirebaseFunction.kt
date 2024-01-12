@@ -11,6 +11,7 @@ import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
+import com.jm.familyboard.Login
 import com.jm.familyboard.MainActivity
 import com.jm.familyboard.R
 import com.jm.familyboard.User
@@ -80,7 +81,9 @@ fun signUp(context: Context, groupNameTest: MutableState<Int>, groupNameValue: M
         .addOnCompleteListener { task ->
             if(task.isSuccessful) {
                 registerDatabase(groupNameTest, groupNameValue, email, name, roles)
-                signUpNavController.navigate(context.getString(R.string.sign_up_nav_route_2))
+                if(!FirebaseAllPath.database.getReference(FirebaseAllPath.USER_EMAIL).child(email.replace("@", "_").replace(".","_")).key.isNullOrBlank()) {
+                    signUpNavController.navigate(context.getString(R.string.sign_up_nav_route_2))
+                }
             } else {
                 println(task.exception)
             }
@@ -184,4 +187,95 @@ fun sendResetPasswordEmail(context: Context, email: String) {
                 println("it.exception ${it.exception}")
             }
         }
+}
+
+fun deleteInfo(context: Context) {
+    val uid = User.uid
+    val infoInGroup = FirebaseAllPath.database.getReference(FirebaseAllPath.SERVICE + User.groupName)
+    infoInGroup.child("/announcement").addListenerForSingleValueEvent(object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            for(childSnapshot in snapshot.children) {
+                val writerUid = childSnapshot.child(context.getString(R.string.database_writer_uid)).getValue(String::class.java) ?: ""
+                if(User.uid == writerUid) {
+                    FirebaseDatabase.getInstance().getReference("real/service/${User.groupName}/announcement/${childSnapshot.key}").removeValue()
+                }
+            }
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
+        }
+    })
+
+    infoInGroup.child("/composition").addListenerForSingleValueEvent(object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            snapshot.child(uid).ref.removeValue()
+            if(snapshot.childrenCount < 1) {
+                infoInGroup.removeValue()
+            }
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
+        }
+    })
+
+    infoInGroup.child("/q_a").addListenerForSingleValueEvent(object : ValueEventListener {
+        override fun onDataChange(snapshot: DataSnapshot) {
+            for(childSnapshot in snapshot.children) {
+                val writerUid = childSnapshot.child("${context.getString(R.string.database_writer)}/${context.getString(R.string.database_uid)}").getValue(String::class.java) ?: ""
+                if(uid == writerUid) {
+                    childSnapshot.ref.removeValue()
+                }
+                for(answer in childSnapshot.child(context.getString(R.string.database_answer_content)).children) {
+                    val answerUid = answer.child(context.getString(R.string.database_uid)).getValue(String::class.java) ?: ""
+                    if(uid == answerUid) {
+                        answer.ref.removeValue()
+                    }
+                }
+
+            }
+        }
+
+        override fun onCancelled(error: DatabaseError) {
+            Toast.makeText(context, error.message, Toast.LENGTH_SHORT).show()
+        }
+    })
+    if(uid == User.representativeUid) {
+        FirebaseDatabase.getInstance().getReference(FirebaseAllPath.SERVICE + User.groupName).child(context.getString(R.string.family_representative)).removeValue()
+    }
+}
+
+fun logout(context: Context) {
+    FirebaseAuth.getInstance().signOut()
+    val intent = Intent(context, Login::class.java)
+    intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+    context.startActivity(intent)
+    removeUserCredentials(context)
+    User.deleteInfo()
+    Toast.makeText(context, context.getString(R.string.done_logout), Toast.LENGTH_SHORT).show()
+}
+
+fun withdrawal(context: Context) {
+    deleteInfo(context)
+    FirebaseAllPath.database.getReference(FirebaseAllPath.GROUP_NAME_AND_INVITATION_CODE)
+    FirebaseAllPath.database.getReference(FirebaseAllPath.USER_EMAIL).child(User.email.replace("@", "_").replace(".","_")).removeValue()
+    FirebaseAllPath.database.getReference(FirebaseAllPath.USER_INFO + User.uid).removeValue()
+    FirebaseAllPath.database.getReference(FirebaseAllPath.USER_INFO).removeValue()
+        .addOnSuccessListener {
+            Toast.makeText(context, context.getString(R.string.done_withdrawal), Toast.LENGTH_SHORT).show()
+        }
+        .addOnFailureListener { exception ->
+            println(exception.message)
+        }
+    FirebaseAllPath.currentUser?.delete()?.addOnCompleteListener { task ->
+        if(task.isSuccessful) {
+            val intent = Intent(context, Login::class.java)
+            intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
+            User.deleteInfo()
+            context.startActivity(intent)
+        } else {
+            Toast.makeText(context, "${task.exception}", Toast.LENGTH_SHORT).show()
+        }
+    }
 }
