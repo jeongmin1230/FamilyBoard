@@ -477,7 +477,7 @@ fun WhatMean(mean: String, essential: Boolean) {
             text = mean,
             style = MaterialTheme.typography.bodySmall.copy(Color.DarkGray),
             fontWeight = FontWeight.Normal,
-            modifier = Modifier.padding(start = 10.dp, bottom = 10.dp)
+            modifier = Modifier.padding(start = 10.dp, bottom = 4.dp)
         )
         if(essential) {
             TextComposable(
