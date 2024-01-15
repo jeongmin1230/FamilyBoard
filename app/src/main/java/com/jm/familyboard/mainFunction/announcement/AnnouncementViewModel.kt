@@ -64,12 +64,10 @@ class AnnouncementViewModel: ViewModel() {
     fun writeDB(context: Context, isModify: Boolean, writeNo: Int, currentNavController: NavHostController){
         announcementReference.addListenerForSingleValueEvent(object : ValueEventListener {
             override fun onDataChange(snapshot: DataSnapshot) {
-                val nextNo = snapshot.childrenCount + 1
-                val ref =  announcementReference.child("${context.getString(R.string.database_no)}${if(isModify)writeNo else nextNo}")
+                val ref =  announcementReference.child(vmWriteDate.value)
                 ref.child(context.getString(R.string.database_content)).setValue(vmContent.value)
                 ref.child(context.getString(R.string.database_title)).setValue(vmTitle.value)
                 ref.child(context.getString(R.string.database_date)).setValue(vmWriteDate.value)
-                ref.child(context.getString(R.string.database_no)).setValue(if(isModify)writeNo else nextNo)
                 ref.child(context.getString(R.string.database_writer_uid)).setValue(User.uid)
                 ref.child(context.getString(R.string.database_writer)).setValue(User.name)
                 currentNavController.popBackStack()

@@ -94,6 +94,7 @@ fun Q_AScreen(mainNavController: NavHostController) {
                     qaList.value.forEach { qa ->
                         AllList(
                             screenType = 1,
+                            writingNo = qa.no.no,
                             modify = isModify,
                             answerCount = qa.no.answerContent.answerCount,
                             title = qa.no.questionTitle,

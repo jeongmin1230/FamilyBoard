@@ -79,6 +79,7 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                     announcementList.value.forEach { announcement ->
                         AllList(
                             screenType = 0,
+                            writingNo = announcement.no,
                             modify = announcementViewModel.vmModify,
                             answerCount = 0L,
                             title = announcement.title,
@@ -90,8 +91,6 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                         ) {
                             announcementViewModel.vmTitle.value = announcement.title
                             announcementViewModel.vmContent.value = announcement.content
-                            announcementViewModel.vmWritingNo.intValue = announcement.no
-                            announcementViewModel.vmWriteDate.value = announcement.date
                             currentNavController.navigate(announcementArray[3])
                         }
                     }
@@ -104,8 +103,10 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                 .background(Color.White)
                 .fillMaxSize()) {
                 AppBar(false, announcementArray[2], null, {}) { currentNavController.popBackStack() }
+                println("vmModify ${announcementViewModel.vmModify.value}")
+                val date = if(announcementViewModel.vmModify.value) announcementViewModel.vmWriteDate.value else currentDate
                 announcementViewModel.vmWriteDate.value = if(announcementViewModel.vmModify.value) announcementViewModel.vmWriteDate.value else currentDate
-                RegisterNotice(announcementViewModel.vmModify.value, announcementViewModel.vmTitle, announcementViewModel.vmContent, announcementViewModel.vmWriteDate.value) {
+                RegisterNotice(announcementViewModel.vmModify.value, announcementViewModel.vmTitle, announcementViewModel.vmContent, date) {
                     announcementViewModel.writeDB(context, announcementViewModel.vmModify.value, announcementViewModel.vmWritingNo.intValue, currentNavController)
                 }
             }
@@ -141,7 +142,7 @@ fun RegisterNotice(vmModify: Boolean, vmTitle: MutableState<String>, vmContent: 
                         .padding(horizontal = 10.dp)
                 )
                 TextComposable(
-                    text = if(vmModify) "${stringResource(R.string.first_register_date)} ${vmWriteDate.split(",")[0]}" else "${stringResource(R.string.register_date)} ${vmWriteDate.substring(0, 2)}. ${vmWriteDate.substring(2, 4)}. ${vmWriteDate.substring(4, 6)}",
+                    text = if(vmModify) "${stringResource(R.string.first_register_date)} ${vmWriteDate.split(":")[0]}" else "${stringResource(R.string.register_date)} ${vmWriteDate.substring(0, 2)}. ${vmWriteDate.substring(2, 4)}. ${vmWriteDate.substring(4, 6)}",
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Black),
                     fontWeight = FontWeight.Light,
                     modifier = Modifier

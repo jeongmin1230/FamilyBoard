@@ -348,6 +348,7 @@ fun EditInformation(context: Context, editName: MutableState<String>, editRoles:
 fun Logout(context: Context, confirmLogout: MutableState<Boolean>) {
     ConfirmDialog(
         screenType = 2,
+        path = "",
         onDismiss = { confirmLogout.value = false },
         content = stringResource(id = R.string.do_logout),
         confirmAction = { logout(context) }
@@ -358,6 +359,7 @@ fun Logout(context: Context, confirmLogout: MutableState<Boolean>) {
 fun Withdrawal(context: Context, confirmWithdrawal: MutableState<Boolean>) {
     ConfirmDialog(
         screenType = 2,
+        path = "",
         onDismiss = { confirmWithdrawal.value = false },
         content = stringResource(id =  R.string.do_withdrawal),
         confirmAction = { withdrawal(context) }
@@ -379,8 +381,7 @@ fun RowLayout(mean: String, info: String, onClick: () -> Unit) {
             text = info,
             style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
             fontWeight = FontWeight.Normal,
-            modifier = Modifier
-                .clickable { onClick() }
+            modifier = Modifier.clickable { onClick() }
         )
     }
 }

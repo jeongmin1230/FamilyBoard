@@ -66,7 +66,7 @@
 
     <string name="announcement">공지 사항</string>
     <string name="register_notice">공지 사항 등록</string>
-    <string name="announcement_information">상단 우측 아이콘을 누르면 공지사항을 등록 할 수 있습니다.\n공지를 짧게 누르면 공지 내용, 길게 누르면 수정 할 수 있습니다.</string>
+    <string name="announcement_information">상단 우측 아이콘을 누르면 공지사항을 등록 할 수 있습니다.\n공지를 짧게 누르면 공지 내용, 길게 누르면 수정, 삭제 할 수 있습니다.</string>
     <string name="announcement_date_format">yyMMdd:HHmmss</string>
 
     <string name="writer">작성자</string>
@@ -76,6 +76,7 @@
     <string name="announcement_edit_warning">작성자 외에는 수정 할 수 없습니다.</string>
 
     <string name="edit">수정하기</string>
+    <string name="delete">삭제하기</string>
     <string name="answer">답변하기</string>
 
     <string name="q_a_content">질문 내용</string>
@@ -140,7 +141,7 @@
     <string name="do_withdrawal">정말 탈퇴 하시겠습니까?\n해당 아이디로 작성한 모든 글이 삭제됩니다.</string>
     <string name="done_withdrawal">이용해 주셔서 감사합니다. 회원 탈퇴 되었습니다.</string>
 
-    <string name="q_a_information">상단 우측의 아이콘을 누르면 질문을 등록 할 수 있습니다.\n질문을 선택 하면 질문 내용 확인, 답변 달기가 가능합니다.</string>
+    <string name="q_a_information">상단 우측의 아이콘을 누르면 질문을 등록 할 수 있습니다.\n질문을 짧게 누르면 상세 보기, 길게 누르면 삭제가 가능합니다.</string>
     <string name="q_a">질의응답</string>
     <string name="q_a_write_question">질문 등록</string>
     <string name="q_a_answer">답변</string>

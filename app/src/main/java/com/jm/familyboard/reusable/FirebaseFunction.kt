@@ -168,10 +168,13 @@ fun loginUser(activity: Activity, navController: NavHostController, email: Mutab
                     loading.value = false
                     email.value = ""
                     password.value = ""
-                    if(!task.isSuccessful) {
-                        println("login fail : ${task.exception}")
-                        Toast.makeText(activity, activity.getString(R.string.try_again), Toast.LENGTH_SHORT).show()
+                    if(email.value.isNotEmpty() && password.value.isNotEmpty()) {
+                        if(!task.isSuccessful) {
+                            println("login fail : ${task.exception}")
+                            Toast.makeText(activity, activity.getString(R.string.try_again), Toast.LENGTH_SHORT).show()
+                        }
                     }
+
                 }
             }
     }

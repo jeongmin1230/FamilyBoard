@@ -67,6 +67,7 @@ import com.airbnb.lottie.compose.LottieCompositionSpec
 import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
+import com.google.firebase.database.FirebaseDatabase
 import com.jm.familyboard.User
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -208,10 +209,12 @@ fun HowToUseColumn(text: String) {
 @SuppressLint("SimpleDateFormat")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun AllList(screenType: Int, modify: MutableState<Boolean>, answerCount: Long, title: String, content: String, date: String, writer: String, answer: String, writerUid: String, clickAction: () -> Unit) {
+fun AllList(screenType: Int, writingNo: Int, modify: MutableState<Boolean>, answerCount: Long, title: String, content: String, date: String, writer: String, answer: String, writerUid: String, clickAction: () -> Unit) {
     val context = LocalContext.current
     val showDetail = remember { mutableStateOf(false) }
     var showDialog by remember { mutableStateOf(false) }
+    val path = if(screenType == 0) FirebaseAllPath.SERVICE + "${User.groupName}/announcement/no$writingNo" else if(screenType == 1) FirebaseAllPath.SERVICE + "${User.groupName}/q_a/no$writingNo" else ""
+
     Column(
         modifier = Modifier
             .combinedClickable(
@@ -220,12 +223,13 @@ fun AllList(screenType: Int, modify: MutableState<Boolean>, answerCount: Long, t
                     else if(screenType == 1) clickAction()
                 },
                 onLongClick = {
-                    if(screenType == 0) {
-                        showDialog = if(User.uid == writerUid) { true }
-                                    else {
-                                        Toast.makeText(context, context.getString(R.string.announcement_edit_warning), Toast.LENGTH_SHORT).show()
-                                        false
-                                    }
+                    showDialog = if(screenType == 0) {
+                        if(User.uid == writerUid) { true } else {
+                            Toast.makeText(context, context.getString(R.string.announcement_edit_warning), Toast.LENGTH_SHORT).show()
+                            false
+                        }
+                    } else {
+                        true
                     }
                 }
             )
@@ -233,7 +237,7 @@ fun AllList(screenType: Int, modify: MutableState<Boolean>, answerCount: Long, t
         val currentDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis())).split(":")[0]
         val dateSplit = date.split(":")
         val compareDate = if(dateSplit[0].toInt() >= currentDate.toInt()) "${dateSplit[1].substring(0, 2)} : ${dateSplit[1].substring(2, 4)}"
-                        else "${dateSplit[0].substring(0, 2)}. ${dateSplit[0].substring(2, 4)}. ${dateSplit[0].substring(4, 6)}"
+        else "${dateSplit[0].substring(0, 2)}. ${dateSplit[0].substring(2, 4)}. ${dateSplit[0].substring(4, 6)}"
         Column(modifier = Modifier
             .fillMaxWidth()
             .padding(all = 10.dp)) {
@@ -291,8 +295,12 @@ fun AllList(screenType: Int, modify: MutableState<Boolean>, answerCount: Long, t
 
     if(showDialog) {
         if(screenType == 0) {
-            ConfirmDialog(screenType = 0, onDismiss = { showDialog = false }, content = title ) {
-                modify.value = true
+            ConfirmDialog(screenType = 0, path = path, content = "", onDismiss = { showDialog = false }) {
+                clickAction()
+            }
+        }
+        else if(screenType == 1) {
+            ConfirmDialog(screenType = 1, path = path, content = "", onDismiss = { showDialog = false }) {
                 clickAction()
             }
         }
@@ -409,49 +417,58 @@ fun CompleteButton(isEnable: Boolean, color: Color, text: String, modifier: Modi
 }
 
 @Composable
-fun ConfirmDialog(screenType: Int, onDismiss: () -> Unit, content: String, confirmAction: () -> Unit) {
+fun ConfirmDialog(screenType: Int, path: String, content: String, onDismiss: () -> Unit, confirmAction: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
+        containerColor = Color.White,
         text = {
-            Column(modifier = Modifier.fillMaxWidth()) {
-                TextComposable(
-                    text = content,
-                    style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier
-                )
+            if(content != "") {
+                Column(modifier = Modifier.fillMaxWidth()) {
+                    TextComposable(
+                        text = content,
+                        style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier
+                    )
+                }
             }
         },
-        containerColor = Color.White,
         confirmButton = {
-            when(screenType){
-                0 -> {
-                    TextComposable(
-                        text = stringResource(id = R.string.edit),
-                        style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .fillMaxWidth()
-                            .clickable { confirmAction() })
+            Column {
+                when(screenType){
+                    0 -> {
+                        TextComposable(
+                            text = stringResource(id = R.string.edit),
+                            style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .fillMaxWidth()
+                                .clickable { confirmAction() })
+                    }
+                    2 -> {
+                        TextComposable(text = stringResource(id = R.string.yes),
+                            style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
+                            fontWeight = FontWeight.Normal,
+                            modifier = Modifier
+                                .padding(start = 10.dp)
+                                .clickable { confirmAction() })
+                    }
                 }
-                1 -> {
+                Spacer(modifier = Modifier.height(16.dp))
+                if(screenType == 0 || screenType == 1) {
                     TextComposable(
-                        text = stringResource(id = R.string.answer),
-                        style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier
-                            .padding(start = 10.dp)
-                            .fillMaxWidth()
-                            .clickable { confirmAction() })
-                }
-                2 -> {
-                    TextComposable(text = stringResource(id = R.string.yes),
-                        style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
+                        text = stringResource(id = R.string.delete),
+                        style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
                         fontWeight = FontWeight.Normal,
                         modifier = Modifier
                             .padding(start = 10.dp)
-                            .clickable { confirmAction() })
+                            .fillMaxWidth()
+                            .clickable {
+                                onDismiss()
+                                FirebaseDatabase.getInstance().getReference(path).removeValue()
+                            }
+                    )
                 }
             }
         },
