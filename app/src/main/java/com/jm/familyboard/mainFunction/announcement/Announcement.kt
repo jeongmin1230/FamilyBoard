@@ -31,12 +31,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jm.familyboard.R
-import com.jm.familyboard.reusable.AllList
 import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.EnterInfoMultiColumn
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
 import com.jm.familyboard.reusable.HowToUseColumn
+import com.jm.familyboard.reusable.ItemLayout
 import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.textFieldKeyboard
 import java.text.SimpleDateFormat
@@ -77,7 +77,16 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                     )
                 } else {
                     announcementList.value.forEach { announcement ->
-                        AllList(
+                        println("in composable : $announcement")
+                        ItemLayout(
+                            screenType = 0,
+                            date = announcement.date,
+                            title = announcement.title,
+                            content = announcement.content,
+                            commentNum = "",
+                            writer = announcement.writer
+                        )
+/*                        AllList(
                             screenType = 0,
                             writingNo = announcement.no,
                             modify = announcementViewModel.vmModify,
@@ -90,9 +99,10 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                             writerUid = announcement.writerUid
                         ) {
                             announcementViewModel.vmTitle.value = announcement.title
+                            announcementViewModel.vmModify.value = true
                             announcementViewModel.vmContent.value = announcement.content
                             currentNavController.navigate(announcementArray[3])
-                        }
+                        }*/
                     }
                 }
             }
@@ -105,8 +115,10 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                 AppBar(false, announcementArray[2], null, {}) { currentNavController.popBackStack() }
                 println("vmModify ${announcementViewModel.vmModify.value}")
                 val date = if(announcementViewModel.vmModify.value) announcementViewModel.vmWriteDate.value else currentDate
-                announcementViewModel.vmWriteDate.value = if(announcementViewModel.vmModify.value) announcementViewModel.vmWriteDate.value else currentDate
-                RegisterNotice(announcementViewModel.vmModify.value, announcementViewModel.vmTitle, announcementViewModel.vmContent, date) {
+                announcementViewModel.vmWriteDate.value = date
+                println("vmModify ${announcementViewModel.vmModify.value}")
+                println("vmWriteDate ${announcementViewModel.vmWriteDate.value}")
+                RegisterNotice(announcementViewModel.vmModify.value, announcementViewModel.vmTitle, announcementViewModel.vmContent, announcementViewModel.vmWriteDate.value) {
                     announcementViewModel.writeDB(context, announcementViewModel.vmModify.value, announcementViewModel.vmWritingNo.intValue, currentNavController)
                 }
             }

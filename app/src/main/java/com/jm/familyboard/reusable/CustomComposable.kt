@@ -1,12 +1,9 @@
 package com.jm.familyboard.reusable
 
 import android.annotation.SuppressLint
-import android.widget.Toast
-import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.combinedClickable
 import androidx.compose.foundation.interaction.MutableInteractionSource
@@ -46,7 +43,6 @@ import com.jm.familyboard.R
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -68,6 +64,7 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.google.firebase.database.FirebaseDatabase
+import com.jm.familyboard.CheckDialog
 import com.jm.familyboard.User
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -206,7 +203,89 @@ fun HowToUseColumn(text: String) {
     }
 }
 
+@OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("SimpleDateFormat")
+@Composable
+fun ItemLayout(screenType: Int, date: String, title: String, content: String, commentNum: String, writer: String) {
+    val shortClick = remember { mutableStateOf(false) }
+    val longClick = remember { mutableStateOf(false) }
+    val currentDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis())).split(":")[0]
+    val dateSplit = date.split(":")
+    val showDate = if(dateSplit[0] >= currentDate) "${dateSplit[1].substring(0, 2)} : ${dateSplit[1].substring(2, 4)}"
+                else "${dateSplit[0].substring(0, 2)}. ${dateSplit[0].substring(2, 4)}. ${dateSplit[0].substring(4, 6)}"
+    Column(
+        modifier = Modifier
+            .combinedClickable(
+                onClick = {
+                    if (screenType == 0) shortClick.value = !shortClick.value
+                },
+                onLongClick = {
+                    if (screenType == 0 || screenType == 1) longClick.value = !longClick.value
+                }
+            )
+            .padding(all = 10.dp)
+    ) {
+        TextComposable(
+            text = showDate,
+            style = MaterialTheme.typography.labelMedium.copy(Color.Gray),
+            fontWeight = FontWeight.Normal,
+            modifier = Modifier)
+        Row(verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.fillMaxWidth()) {
+            TextComposable(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.weight(1f)
+            )
+            if(screenType == 1) {
+                TextComposable(
+                    text = "[$commentNum]",
+                    style = MaterialTheme.typography.labelMedium.copy(Color.Blue.copy(0.2f)),
+                    fontWeight = FontWeight.Light,
+                    modifier = Modifier
+                )
+            }
+            TextComposable(
+                text = writer,
+                style = MaterialTheme.typography.labelMedium.copy(Color.Gray),
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier
+            )
+        }
+    }
+    if(shortClick.value) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .background(Color(0xFFC6DBDA))) {
+            TextComposable(
+                text = content,
+                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.padding(all = 10.dp)
+            )
+        }
+
+    }
+    if(longClick.value) {
+        val confirmText = when (screenType) {
+            0, 1 -> stringResource(id = R.string.edit)
+            2 -> stringResource(id = R.string.withdrawal)
+            else -> ""
+        }
+        val dismissText = when(screenType) {
+            0, 1 -> stringResource(id = R.string.delete)
+            2 -> stringResource(id = R.string.cancel)
+            else -> ""
+        }
+        ClickDialog(confirmText = confirmText, dismissText = dismissText, modifier = Modifier.fillMaxWidth(),
+            onConfirm = { },
+            onDismiss = { }
+        )
+    }
+    Divider()
+}
+/*@SuppressLint("SimpleDateFormat")
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun AllList(screenType: Int, writingNo: Int, modify: MutableState<Boolean>, answerCount: Long, title: String, content: String, date: String, writer: String, answer: String, writerUid: String, clickAction: () -> Unit) {
@@ -305,7 +384,7 @@ fun AllList(screenType: Int, writingNo: Int, modify: MutableState<Boolean>, answ
             }
         }
     }
-}
+}*/
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -417,6 +496,36 @@ fun CompleteButton(isEnable: Boolean, color: Color, text: String, modifier: Modi
 }
 
 @Composable
+fun ClickDialog(confirmText: String, dismissText: String, modifier: Modifier, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        confirmButton = {
+            TextComposable(
+                text = confirmText,
+                style = MaterialTheme.typography.bodyMedium.copy(Color.Red),
+                fontWeight = FontWeight.Normal,
+                modifier = modifier
+                    .clickable { onConfirm() }
+                    .padding(all = 8.dp)
+            )
+        },
+        dismissButton = {
+            TextComposable(
+                text = dismissText,
+                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                fontWeight = FontWeight.Normal,
+                modifier = modifier
+                    .clickable { onDismiss() }
+                    .padding(all = 8.dp)
+            )
+        },
+        containerColor = Color.White,
+        properties = DialogProperties(usePlatformDefaultWidth = false),
+        modifier = Modifier.padding(horizontal = 10.dp)
+    )
+}
+
+@Composable
 fun ConfirmDialog(screenType: Int, path: String, content: String, onDismiss: () -> Unit, confirmAction: () -> Unit) {
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -466,7 +575,10 @@ fun ConfirmDialog(screenType: Int, path: String, content: String, onDismiss: () 
                             .fillMaxWidth()
                             .clickable {
                                 onDismiss()
-                                FirebaseDatabase.getInstance().getReference(path).removeValue()
+                                FirebaseDatabase
+                                    .getInstance()
+                                    .getReference(path)
+                                    .removeValue()
                             }
                     )
                 }

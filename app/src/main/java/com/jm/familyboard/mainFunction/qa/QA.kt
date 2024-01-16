@@ -42,7 +42,6 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jm.familyboard.R
 import com.jm.familyboard.datamodel.AnswerContentResponse
-import com.jm.familyboard.reusable.AllList
 import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.EnterInfoMultiColumn
@@ -92,7 +91,7 @@ fun Q_AScreen(mainNavController: NavHostController) {
                     )
                 } else {
                     qaList.value.forEach { qa ->
-                        AllList(
+/*                        AllList(
                             screenType = 1,
                             writingNo = qa.no.no,
                             modify = isModify,
@@ -109,7 +108,7 @@ fun Q_AScreen(mainNavController: NavHostController) {
                             qaViewModel.vmAnswerContent.value = qa.no.answerContent.content
                             qaViewModel.vmQuestionNo.intValue = qa.no.no
                             currentNavController.navigate(qaArray[5])
-                        }
+                        }*/
                     }
                 }
             }
