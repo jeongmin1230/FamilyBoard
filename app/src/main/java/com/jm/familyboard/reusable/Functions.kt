@@ -1,8 +1,17 @@
 package com.jm.familyboard.reusable
 
+import android.annotation.SuppressLint
+import android.content.Context
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.res.stringResource
 import com.jm.familyboard.R
+import java.text.SimpleDateFormat
+import java.util.Date
+
+@SuppressLint("SimpleDateFormat")
+fun today(context: Context): String {
+    return SimpleDateFormat(context.getString(R.string.announcement_date_format)).format(Date(System.currentTimeMillis()))
+}
 
 fun isEmailValid(email: String): Int {
     val emailPattern = Regex("[a-zA-Z\\d._-]+@[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}")

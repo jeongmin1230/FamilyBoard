@@ -64,7 +64,6 @@ import com.airbnb.lottie.compose.LottieConstants
 import com.airbnb.lottie.compose.animateLottieCompositionAsState
 import com.airbnb.lottie.compose.rememberLottieComposition
 import com.google.firebase.database.FirebaseDatabase
-import com.jm.familyboard.CheckDialog
 import com.jm.familyboard.User
 import java.text.SimpleDateFormat
 import java.util.Date
@@ -77,11 +76,13 @@ val notoSansKr = FontFamily(
     Font(R.font.notosanskr_thin, FontWeight.Thin, FontStyle.Normal)
 )
 
-val textSetting = TextStyle(
-    fontFamily = notoSansKr,
-    platformStyle = PlatformTextStyle(includeFontPadding = false),
-    color = Color.Black
-)
+@Composable
+fun date(isModify: Boolean, currentDate: String, writeDate: String): List<String> {
+    val modifyDate = "${writeDate.split(":")[0].substring(0, 2)}. ${writeDate.split(":")[0].substring(2, 4)}. ${writeDate.split(":")[0].substring(4, 6)}"
+    val totalDate = if (isModify) "${stringResource(id = R.string.first_register_date)} $modifyDate"
+    else "${stringResource(id = R.string.register_date)} ${currentDate.split(":")[0].substring(0, 2)}. ${currentDate.split(":")[0].substring(2, 4)}. ${currentDate.split(":")[0].substring(4, 6)}"
+    return if(isModify) listOf(modifyDate, totalDate) else listOf(currentDate, totalDate)
+}
 
 @Composable
 fun textSetting(editable: Boolean): TextStyle {
@@ -206,7 +207,7 @@ fun HowToUseColumn(text: String) {
 @OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("SimpleDateFormat")
 @Composable
-fun ItemLayout(screenType: Int, date: String, title: String, content: String, commentNum: String, writer: String) {
+fun ItemLayout(screenType: Int, date: String, title: String, content: String, commentNum: Long, writer: String, onShortClick: () -> Unit, onLongClick: () -> Unit) {
     val shortClick = remember { mutableStateOf(false) }
     val longClick = remember { mutableStateOf(false) }
     val currentDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis())).split(":")[0]
@@ -217,40 +218,45 @@ fun ItemLayout(screenType: Int, date: String, title: String, content: String, co
         modifier = Modifier
             .combinedClickable(
                 onClick = {
-                    if (screenType == 0) shortClick.value = !shortClick.value
+                    if(screenType == 0) shortClick.value = !shortClick.value
+                    if(screenType == 1) onShortClick()
                 },
                 onLongClick = {
                     if (screenType == 0 || screenType == 1) longClick.value = !longClick.value
                 }
             )
-            .padding(all = 10.dp)
     ) {
-        TextComposable(
-            text = showDate,
-            style = MaterialTheme.typography.labelMedium.copy(Color.Gray),
-            fontWeight = FontWeight.Normal,
-            modifier = Modifier)
-        Row(verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier.fillMaxWidth()) {
+        Column(modifier = Modifier
+            .fillMaxWidth()
+            .padding(all = 10.dp)) {
             TextComposable(
-                text = title,
-                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                text = showDate,
+                style = MaterialTheme.typography.labelSmall.copy(Color.DarkGray),
                 fontWeight = FontWeight.Normal,
-                modifier = Modifier.weight(1f)
+                modifier = Modifier.align(Alignment.Start)
             )
-            if(screenType == 1) {
+            Row(verticalAlignment = Alignment.CenterVertically) {
                 TextComposable(
-                    text = "[$commentNum]",
-                    style = MaterialTheme.typography.labelMedium.copy(Color.Blue.copy(0.2f)),
-                    fontWeight = FontWeight.Light,
-                    modifier = Modifier
+                    text = title,
+                    style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.padding(end = 4.dp)
                 )
+                if(screenType != 0) {
+                    TextComposable(
+                        text = if(commentNum == 0L) "" else "[${commentNum}]",
+                        style = MaterialTheme.typography.bodyMedium.copy(Color.Blue),
+                        fontWeight = FontWeight.Normal,
+                        modifier = Modifier
+                    )
+                }
             }
+
             TextComposable(
                 text = writer,
-                style = MaterialTheme.typography.labelMedium.copy(Color.Gray),
+                style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
                 fontWeight = FontWeight.Normal,
-                modifier = Modifier
+                modifier = Modifier.align(Alignment.End)
             )
         }
     }
@@ -279,112 +285,15 @@ fun ItemLayout(screenType: Int, date: String, title: String, content: String, co
             else -> ""
         }
         ClickDialog(confirmText = confirmText, dismissText = dismissText, modifier = Modifier.fillMaxWidth(),
-            onConfirm = { },
-            onDismiss = { }
+            onConfirm = {
+                onLongClick()
+                longClick.value = !longClick.value
+                        },
+            onDismiss = { longClick.value = !longClick.value }
         )
     }
     Divider()
 }
-/*@SuppressLint("SimpleDateFormat")
-@OptIn(ExperimentalFoundationApi::class)
-@Composable
-fun AllList(screenType: Int, writingNo: Int, modify: MutableState<Boolean>, answerCount: Long, title: String, content: String, date: String, writer: String, answer: String, writerUid: String, clickAction: () -> Unit) {
-    val context = LocalContext.current
-    val showDetail = remember { mutableStateOf(false) }
-    var showDialog by remember { mutableStateOf(false) }
-    val path = if(screenType == 0) FirebaseAllPath.SERVICE + "${User.groupName}/announcement/no$writingNo" else if(screenType == 1) FirebaseAllPath.SERVICE + "${User.groupName}/q_a/no$writingNo" else ""
-
-    Column(
-        modifier = Modifier
-            .combinedClickable(
-                onClick = {
-                    if(screenType == 0) showDetail.value = !showDetail.value
-                    else if(screenType == 1) clickAction()
-                },
-                onLongClick = {
-                    showDialog = if(screenType == 0) {
-                        if(User.uid == writerUid) { true } else {
-                            Toast.makeText(context, context.getString(R.string.announcement_edit_warning), Toast.LENGTH_SHORT).show()
-                            false
-                        }
-                    } else {
-                        true
-                    }
-                }
-            )
-    ) {
-        val currentDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis())).split(":")[0]
-        val dateSplit = date.split(":")
-        val compareDate = if(dateSplit[0].toInt() >= currentDate.toInt()) "${dateSplit[1].substring(0, 2)} : ${dateSplit[1].substring(2, 4)}"
-        else "${dateSplit[0].substring(0, 2)}. ${dateSplit[0].substring(2, 4)}. ${dateSplit[0].substring(4, 6)}"
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .padding(all = 10.dp)) {
-            TextComposable(
-                text = compareDate,
-                style = MaterialTheme.typography.labelSmall.copy(Color.DarkGray),
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier.align(Alignment.Start)
-            )
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                TextComposable(
-                    text = title,
-                    style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier.padding(end = 4.dp)
-                )
-                if(screenType != 0) {
-                    TextComposable(
-                        text = if(answerCount == 0L) "" else "[${answerCount}]",
-                        style = MaterialTheme.typography.bodyMedium.copy(Color.Blue),
-                        fontWeight = FontWeight.Normal,
-                        modifier = Modifier
-                    )
-                }
-            }
-
-            TextComposable(
-                text = writer,
-                style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier.align(Alignment.End)
-            )
-        }
-    }
-    if(showDetail.value) {
-        Column(modifier = Modifier
-            .fillMaxWidth()
-            .background(if (screenType == 0) Color(0xFFC6DBDA) else Color(0XFFF6EAC2))
-            .padding(all = 10.dp)) {
-            TextComposable(
-                text = content,
-                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier
-            )
-            TextComposable(
-                text = answer,
-                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier.padding(top = 10.dp)
-            )
-        }
-    }
-    Divider(Modifier.border(BorderStroke(1.dp, Color.DarkGray)))
-
-    if(showDialog) {
-        if(screenType == 0) {
-            ConfirmDialog(screenType = 0, path = path, content = "", onDismiss = { showDialog = false }) {
-                clickAction()
-            }
-        }
-        else if(screenType == 1) {
-            ConfirmDialog(screenType = 1, path = path, content = "", onDismiss = { showDialog = false }) {
-                clickAction()
-            }
-        }
-    }
-}*/
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

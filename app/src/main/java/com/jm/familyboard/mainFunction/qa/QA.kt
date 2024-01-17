@@ -20,7 +20,6 @@ import androidx.compose.material3.TextField
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.MutableState
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -28,8 +27,6 @@ import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringArrayResource
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.text.PlatformTextStyle
-import androidx.compose.ui.text.TextStyle
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -41,22 +38,22 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jm.familyboard.R
-import com.jm.familyboard.datamodel.AnswerContentResponse
+import com.jm.familyboard.datamodel.AnswerResponse
 import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.EnterInfoMultiColumn
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
 import com.jm.familyboard.reusable.HowToUseColumn
+import com.jm.familyboard.reusable.ItemLayout
 import com.jm.familyboard.reusable.TextComposable
 import com.jm.familyboard.reusable.TextFieldPlaceholderOrSupporting
-import com.jm.familyboard.reusable.notoSansKr
+import com.jm.familyboard.reusable.date
 import com.jm.familyboard.reusable.textFieldColors
 import com.jm.familyboard.reusable.textFieldKeyboard
+import com.jm.familyboard.reusable.textSetting
+import com.jm.familyboard.reusable.today
 import com.jm.familyboard.ui.theme.FamilyBoardTheme
-import java.text.SimpleDateFormat
-import java.util.Date
 
-@SuppressLint("SimpleDateFormat")
 @Composable
 fun Q_AScreen(mainNavController: NavHostController) {
     val context = LocalContext.current
@@ -64,7 +61,6 @@ fun Q_AScreen(mainNavController: NavHostController) {
     val currentNavController = rememberNavController()
     val qaList = remember { qaViewModel.qas }
     val qaArray = stringArrayResource(id = R.array.q_a_nav)
-    val isModify = remember { mutableStateOf(false) }
     NavHost(currentNavController, startDestination = qaArray[1]) {
         composable(qaArray[1]) {
             Column(modifier = Modifier
@@ -72,11 +68,10 @@ fun Q_AScreen(mainNavController: NavHostController) {
                 .verticalScroll(rememberScrollState())
                 .fillMaxSize()) {
                 AppBar(true, qaArray[0], R.drawable.ic_q_a, {
+                    qaViewModel.vmQuestionDate.value = today(context)
                     qaViewModel.init()
-                    currentNavController.navigate(qaArray[3])}) {
-                    qaViewModel.init()
-                    mainNavController.popBackStack()
-                }
+                    currentNavController.navigate(qaArray[3])}
+                ) { mainNavController.popBackStack() }
                 LaunchedEffect(qaList) { qaViewModel.loadData(context) }
 
                 Spacer(modifier = Modifier.height(20.dp))
@@ -91,24 +86,24 @@ fun Q_AScreen(mainNavController: NavHostController) {
                     )
                 } else {
                     qaList.value.forEach { qa ->
-/*                        AllList(
+                        ItemLayout(
                             screenType = 1,
-                            writingNo = qa.no.no,
-                            modify = isModify,
-                            answerCount = qa.no.answerContent.answerCount,
-                            title = qa.no.questionTitle,
-                            content = qa.no.questionContent.content,
-                            date = qa.no.questionContent.date,
-                            writer = qa.no.writer.name,
-                            answer = qa.no.answerContent.content,
-                            writerUid = qa.no.writer.uid,
-                        ) {
-                            qaViewModel.vmQuestionContent.value = qa.no.questionContent.content
-                            qaViewModel.vmQuestionTitle.value = qa.no.questionTitle
-                            qaViewModel.vmAnswerContent.value = qa.no.answerContent.content
-                            qaViewModel.vmQuestionNo.intValue = qa.no.no
-                            currentNavController.navigate(qaArray[5])
-                        }*/
+                            date = qa.questionContent.date,
+                            title = qa.questionTitle,
+                            content = qa.questionContent.content,
+                            commentNum = qa.answerCount,
+                            writer = qa.writer.name,
+                            onShortClick = {
+                                qaViewModel.vmQuestionContent.value = qa.questionContent.content
+                                currentNavController.navigate(qaArray[5]) },
+                            onLongClick = {
+                                qaViewModel.vmModify.value = true
+                                qaViewModel.vmQuestionTitle.value = qa.questionTitle
+                                qaViewModel.vmQuestionContent.value = qa.questionContent.content
+                                qaViewModel.vmQuestionDate.value = qa.questionContent.date
+                                currentNavController.navigate(qaArray[3])
+                            }
+                        )
                     }
                 }
             }
@@ -117,22 +112,24 @@ fun Q_AScreen(mainNavController: NavHostController) {
             Column(modifier = Modifier
                 .background(Color.White)
                 .fillMaxSize()) {
-                qaViewModel.vmQuestionDate.value = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis()))
                 AppBar(false, qaArray[2], null, {}) {
                     qaViewModel.init()
                     currentNavController.popBackStack() }
-                WriteQuestionScreen(qaViewModel.vmQuestionTitle, qaViewModel.vmQuestionContent, qaViewModel.vmQuestionDate.value.split(":")[0]) {
-                    qaViewModel.writeQuestion(context, currentNavController)
-                }
+                WriteQuestionScreen(
+                    modify = qaViewModel.vmModify.value,
+                    questionTitle = qaViewModel.vmQuestionTitle,
+                    questionContent = qaViewModel.vmQuestionContent,
+                    questionDate = date(isModify = false, currentDate = today(context), writeDate = qaViewModel.vmQuestionDate.value)
+                ) { qaViewModel.writeQuestion(context, currentNavController) }
             }
         }
 
         composable(qaArray[5]) {
-            qaViewModel.vmAnswerDate.value = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis()))
             val qaCommentList = remember { qaViewModel.comments }
             Column(modifier = Modifier
                 .background(Color.White)
                 .fillMaxSize()) {
+                qaViewModel.vmAnswerDate.value = today(context)
                 AppBar(false, qaArray[4], null, {}) { currentNavController.popBackStack() }
                 AnswerScreen(qaViewModel.vmQuestionContent, qaViewModel.vmAnswerContent, qaCommentList, { qaViewModel.loadComment(context) }) {
                     currentNavController.popBackStack()
@@ -143,9 +140,9 @@ fun Q_AScreen(mainNavController: NavHostController) {
     }
 }
 
-@SuppressLint("SimpleDateFormat")
 @Composable
-fun WriteQuestionScreen(questionTitle: MutableState<String>, questionContent: MutableState<String>, questionDate: String, writeQuestion: () -> Unit) {
+fun WriteQuestionScreen(modify: Boolean, questionTitle: MutableState<String>, questionContent: MutableState<String>, questionDate: List<String>, writeQuestion: () -> Unit) {
+    val buttonText = stringResource(id = R.string.q_a) + if(modify) { stringResource(id = R.string.edit) } else { stringResource(id = R.string.register) }
     Column {
         Column(Modifier.weight(1f)) {
             Column(Modifier.verticalScroll(rememberScrollState())) {
@@ -172,7 +169,7 @@ fun WriteQuestionScreen(questionTitle: MutableState<String>, questionContent: Mu
                         .padding(horizontal = 10.dp)
                 )
                 TextComposable(
-                    text = "${stringResource(R.string.register_date)} ${questionDate.substring(0, 2)}. ${questionDate.substring(2, 4)}. ${questionDate.substring(4, 6)}",
+                    text = questionDate[1],
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Black),
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier
@@ -184,7 +181,7 @@ fun WriteQuestionScreen(questionTitle: MutableState<String>, questionContent: Mu
         }
         CompleteButton(
             isEnable = questionTitle.value.isNotEmpty() && questionContent.value.isNotEmpty(),
-            text = stringResource(id = R.string.q_a_write_question),
+            text = buttonText,
             color = Color.Blue.copy(0.2f),
             modifier = Modifier.fillMaxWidth()) {
             writeQuestion()
@@ -195,7 +192,7 @@ fun WriteQuestionScreen(questionTitle: MutableState<String>, questionContent: Mu
 @OptIn(ExperimentalMaterial3Api::class)
 @SuppressLint("SimpleDateFormat")
 @Composable
-fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableState<String>, commentList: MutableState<List<AnswerContentResponse>>, loadAnswer: () -> Unit, writeAnswer: () -> Unit) {
+fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableState<String>, commentList: MutableState<List<AnswerResponse>>, loadAnswer: () -> Unit, writeAnswer: () -> Unit) {
     LaunchedEffect(true) { loadAnswer() }
     Column {
         Column(Modifier.weight(0.2f)) {
@@ -249,11 +246,7 @@ fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableSt
             TextField(
                 value = answerContent.value,
                 onValueChange = { answerContent.value = it},
-                textStyle = TextStyle(
-                    fontFamily = notoSansKr,
-                    platformStyle = PlatformTextStyle(includeFontPadding = false),
-                    color = Color.Black
-                ),
+                textStyle = textSetting(true),
                 label = { TextFieldPlaceholderOrSupporting(isPlaceholder = true, text = stringResource(id = R.string.q_a_answer_content), correct = true)},
                 interactionSource = MutableInteractionSource(),
                 visualTransformation = VisualTransformation.None,
@@ -270,7 +263,7 @@ fun AnswerScreen(questionContent: MutableState<String>, answerContent: MutableSt
                 modifier = Modifier
                     .align(Alignment.CenterVertically)
                     .padding(all = 4.dp)
-                    .clickable { if (answerContent.value.isNotEmpty()) writeAnswer() }
+                    .clickable(enabled = answerContent.value.isNotEmpty()) { writeAnswer() }
             )
         }
     }

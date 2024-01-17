@@ -38,11 +38,11 @@ import com.jm.familyboard.reusable.EnterInfoSingleColumn
 import com.jm.familyboard.reusable.HowToUseColumn
 import com.jm.familyboard.reusable.ItemLayout
 import com.jm.familyboard.reusable.TextComposable
+import com.jm.familyboard.reusable.date
 import com.jm.familyboard.reusable.textFieldKeyboard
-import java.text.SimpleDateFormat
-import java.util.Date
+import com.jm.familyboard.reusable.today
 
-@SuppressLint("UnrememberedMutableState", "SimpleDateFormat")
+@SuppressLint("UnrememberedMutableState")
 @Composable
 fun AnnouncementScreen(mainNavController: NavHostController) {
     val context = LocalContext.current
@@ -50,7 +50,6 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
     val currentNavController = rememberNavController()
     val announcementList = remember { announcementViewModel.announcements }
     val announcementArray = stringArrayResource(id = R.array.announcement_nav)
-    val currentDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis()))
 
     NavHost(currentNavController, startDestination = announcementArray[1]) {
         composable(announcementArray[1]) {
@@ -59,6 +58,7 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                 .verticalScroll(rememberScrollState())
                 .fillMaxSize()) {
                 AppBar(true, announcementArray[0], R.drawable.ic_announcement, {
+                    announcementViewModel.vmWriteDate.value = today(context)
                     announcementViewModel.init()
                     currentNavController.navigate(announcementArray[3])}) { mainNavController.popBackStack()
                 }
@@ -66,8 +66,7 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
 
                 Spacer(modifier = Modifier.height(20.dp))
                 HowToUseColumn(text = stringResource(id = R.string.announcement_information))
-                Spacer(modifier = Modifier.height(10.dp))
-                
+
                 if(announcementList.value.isEmpty()) {
                     TextComposable(
                         text = stringResource(id = R.string.empty_screen),
@@ -77,32 +76,21 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                     )
                 } else {
                     announcementList.value.forEach { announcement ->
-                        println("in composable : $announcement")
                         ItemLayout(
                             screenType = 0,
                             date = announcement.date,
                             title = announcement.title,
                             content = announcement.content,
-                            commentNum = "",
-                            writer = announcement.writer
-                        )
-/*                        AllList(
-                            screenType = 0,
-                            writingNo = announcement.no,
-                            modify = announcementViewModel.vmModify,
-                            answerCount = 0L,
-                            title = announcement.title,
-                            content = announcement.content,
-                            date = announcement.date,
+                            commentNum = 0L,
                             writer = announcement.writer,
-                            answer = "",
-                            writerUid = announcement.writerUid
-                        ) {
-                            announcementViewModel.vmTitle.value = announcement.title
-                            announcementViewModel.vmModify.value = true
-                            announcementViewModel.vmContent.value = announcement.content
-                            currentNavController.navigate(announcementArray[3])
-                        }*/
+                            onShortClick = {},
+                            onLongClick = {
+                                announcementViewModel.vmModify.value = true
+                                announcementViewModel.vmTitle.value = announcement.title
+                                announcementViewModel.vmContent.value = announcement.content
+                                announcementViewModel.vmWriteDate.value = announcement.date
+                                currentNavController.navigate(announcementArray[3])}
+                        )
                     }
                 }
             }
@@ -113,13 +101,8 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                 .background(Color.White)
                 .fillMaxSize()) {
                 AppBar(false, announcementArray[2], null, {}) { currentNavController.popBackStack() }
-                println("vmModify ${announcementViewModel.vmModify.value}")
-                val date = if(announcementViewModel.vmModify.value) announcementViewModel.vmWriteDate.value else currentDate
-                announcementViewModel.vmWriteDate.value = date
-                println("vmModify ${announcementViewModel.vmModify.value}")
-                println("vmWriteDate ${announcementViewModel.vmWriteDate.value}")
-                RegisterNotice(announcementViewModel.vmModify.value, announcementViewModel.vmTitle, announcementViewModel.vmContent, announcementViewModel.vmWriteDate.value) {
-                    announcementViewModel.writeDB(context, announcementViewModel.vmModify.value, announcementViewModel.vmWritingNo.intValue, currentNavController)
+                RegisterNotice(announcementViewModel.vmModify.value, announcementViewModel.vmTitle, announcementViewModel.vmContent, date(announcementViewModel.vmModify.value, today(context), announcementViewModel.vmWriteDate.value)) {
+                    announcementViewModel.writeDB(context, currentNavController)
                 }
             }
         }
@@ -127,7 +110,8 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
 }
 
 @Composable
-fun RegisterNotice(vmModify: Boolean, vmTitle: MutableState<String>, vmContent: MutableState<String>, vmWriteDate: String, writeDB: () -> Unit) {
+fun RegisterNotice(modify: Boolean, vmTitle: MutableState<String>, vmContent: MutableState<String>, vmWriteDate: List<String>, writeDB: () -> Unit) {
+    val buttonText = stringResource(id = R.string.announcement) + if(modify) { stringResource(id = R.string.edit) } else { stringResource(id = R.string.register) }
     Column {
         Column(Modifier.weight(1f)) {
             Column(Modifier.verticalScroll(rememberScrollState())) {
@@ -154,7 +138,7 @@ fun RegisterNotice(vmModify: Boolean, vmTitle: MutableState<String>, vmContent: 
                         .padding(horizontal = 10.dp)
                 )
                 TextComposable(
-                    text = if(vmModify) "${stringResource(R.string.first_register_date)} ${vmWriteDate.split(":")[0]}" else "${stringResource(R.string.register_date)} ${vmWriteDate.substring(0, 2)}. ${vmWriteDate.substring(2, 4)}. ${vmWriteDate.substring(4, 6)}",
+                    text = vmWriteDate[1],
                     style = MaterialTheme.typography.bodySmall.copy(color = Color.Black),
                     fontWeight = FontWeight.Light,
                     modifier = Modifier
@@ -165,7 +149,7 @@ fun RegisterNotice(vmModify: Boolean, vmTitle: MutableState<String>, vmContent: 
         }
         CompleteButton(
             isEnable = vmTitle.value.isNotEmpty() && vmContent.value.isNotEmpty(),
-            text = stringResource(id = R.string.register_notice),
+            text = buttonText,
             color = Color.Blue.copy(0.2f),
             modifier = Modifier.fillMaxWidth()) { writeDB() }
     }

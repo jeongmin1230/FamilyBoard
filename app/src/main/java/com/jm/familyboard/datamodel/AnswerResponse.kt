@@ -1,6 +1,7 @@
 package com.jm.familyboard.datamodel
 
-data class AnswerContentResponse(
+data class AnswerResponse(
+    val answerTitle: String,
     val content: String,
     val date: String,
     val name: String,

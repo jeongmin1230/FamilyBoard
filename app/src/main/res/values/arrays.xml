@@ -1,5 +1,12 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
+    <array name="main_nav">
+        <item>main</item>
+        <item>announcement</item>
+        <item>family_information</item>
+        <item>my_information</item>
+        <item>q_a</item>
+    </array>
     <array name="sign_up_nav">
         <item>회원 정보 입력</item>
         <item>sign_up_enter_info</item>
