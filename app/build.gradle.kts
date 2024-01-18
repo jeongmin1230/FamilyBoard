@@ -12,8 +12,8 @@ android {
         applicationId = "com.jm.familyboard"
         minSdk = 24
         targetSdk = 34
-        versionCode = 8
-        versionName = "2.0.1"
+        versionCode = 9
+        versionName = "2.0.2"
 
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
         vectorDrawables {
@@ -59,7 +59,6 @@ android {
 }
 
 dependencies {
-    implementation("com.google.android.play:app-update-ktx:2.1.0")
     implementation("com.airbnb.android:lottie-compose:6.0.0")
     implementation ("androidx.navigation:navigation-compose:2.7.6")
     implementation("androidx.core:core-ktx:1.12.0")

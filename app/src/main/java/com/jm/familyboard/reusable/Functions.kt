@@ -13,9 +13,14 @@ fun today(context: Context): String {
     return SimpleDateFormat(context.getString(R.string.announcement_date_format)).format(Date(System.currentTimeMillis()))
 }
 
-fun isEmailValid(email: String): Int {
-    val emailPattern = Regex("[a-zA-Z\\d._-]+@[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}")
-    return if(email.matches(emailPattern)) 3 else if(!email.matches(emailPattern)) 4 else 5
+@Composable
+fun EmailSupportingText(email: String) {
+    if(email.isNotEmpty()) {
+        when(isEmailValid(email)) {
+            3 -> { TextFieldPlaceholderOrSupporting(false, stringResource(id = R.string.sign_up_email_valid), true) }
+            4 -> { TextFieldPlaceholderOrSupporting(false, stringResource(id = R.string.sign_up_email_invalid), false) }
+        }
+    }
 }
 
 @Composable
@@ -36,6 +41,11 @@ fun ConfirmPasswordSupportingText(newPw: String, confirmPw: String) {
             false -> { TextFieldPlaceholderOrSupporting(false, stringResource(id = R.string.sign_up_confirm_password_not_equal), false) }
         }
     }
+}
+
+fun isEmailValid(email: String): Int {
+    val emailPattern = Regex("[a-zA-Z\\d._-]+@[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}")
+    return if(email.matches(emailPattern)) 3 else if(!email.matches(emailPattern)) 4 else 5
 }
 
 fun checkPasswordFormat(password: String): Boolean {

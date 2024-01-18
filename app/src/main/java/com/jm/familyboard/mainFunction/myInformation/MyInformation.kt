@@ -30,6 +30,7 @@ import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
+import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.platform.LocalContext
@@ -51,17 +52,18 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
-import com.google.firebase.database.FirebaseDatabase
 import com.google.firebase.database.ValueEventListener
 import com.jm.familyboard.BuildConfig
 import com.jm.familyboard.Login
 import com.jm.familyboard.R
 import com.jm.familyboard.User
+import com.jm.familyboard.openPlayStore
 import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.ConfirmDialog
 import com.jm.familyboard.reusable.ConfirmPasswordSupportingText
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
+import com.jm.familyboard.reusable.FirebaseAllPath
 import com.jm.familyboard.reusable.HowToUseColumn
 import com.jm.familyboard.reusable.NewPasswordSupportingText
 import com.jm.familyboard.reusable.TextComposable
@@ -73,6 +75,7 @@ import com.jm.familyboard.reusable.generateDB
 import com.jm.familyboard.reusable.getStoredUserPassword
 import com.jm.familyboard.reusable.logout
 import com.jm.familyboard.reusable.notoSansKr
+import com.jm.familyboard.reusable.remoteConfig
 import com.jm.familyboard.reusable.selectRadioButton
 import com.jm.familyboard.reusable.textFieldColors
 import com.jm.familyboard.reusable.textFieldKeyboard
@@ -120,11 +123,40 @@ fun MyInformationScreen(mainNavController: NavHostController) {
 fun MyInformation(context: Context, invitationCode: MutableState<String>) {
     val confirmLogout = remember { mutableStateOf(false) }
     val confirmWithdrawal = remember { mutableStateOf(false) }
+    val newVersion = remember { mutableStateOf("") }
+    remoteConfig(newVersion)
     Column(Modifier.verticalScroll(rememberScrollState())) {
         Spacer(modifier = Modifier.height(10.dp))
         HowToUseColumn(text = stringResource(id = R.string.my_information_information))
-
         WhatMean(mean = stringResource(id = R.string.app_information), essential = false)
+
+        Row(
+            modifier = Modifier.padding(all = 10.dp),
+            verticalAlignment = Alignment.CenterVertically
+            ) {
+            TextComposable(
+                text = stringResource(id = R.string.app_recent_version),
+                style = MaterialTheme.typography.bodyMedium.copy(Color.DarkGray),
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier.padding(end = 20.dp)
+            )
+            TextComposable(
+                text = newVersion.value,
+                style = MaterialTheme.typography.bodyMedium.copy(Color.Black),
+                fontWeight = FontWeight.Normal,
+                modifier = Modifier
+                    .weight(1f)
+                    .padding(end = 4.dp))
+
+            if(newVersion.value != BuildConfig.VERSION_NAME.split("-")[0]) {
+                TextComposable(
+                    text = stringResource(id = R.string.update_now),
+                    style = MaterialTheme.typography.bodyMedium.copy(Color.Blue),
+                    fontWeight = FontWeight.Normal,
+                    modifier = Modifier.clickable { openPlayStore(context) }
+                )
+            }
+        }
         RowLayout(mean = stringResource(id = R.string.app_version_name), info = BuildConfig.VERSION_NAME) {}
 
         Divider(Modifier.background(Color.Gray))
@@ -222,7 +254,7 @@ fun EditInformation(context: Context, editName: MutableState<String>, editRoles:
             Spacer(modifier = Modifier.height(10.dp))
             EnterInfoSingleColumn(
                 essential = true,
-                mean = stringResource(id = R.string.sign_up_password),
+                mean = stringResource(id = R.string.change_password),
                 tfValue = editNewPassword,
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 visualTransformation = PasswordVisualTransformation('*'),
@@ -231,7 +263,7 @@ fun EditInformation(context: Context, editName: MutableState<String>, editRoles:
             Spacer(modifier = Modifier.height(10.dp))
             EnterInfoSingleColumn(
                 essential = true,
-                mean = stringResource(id = R.string.sign_up_confirm_password),
+                mean = stringResource(id = R.string.confirm_change_password),
                 tfValue = editConfirmPassword,
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 visualTransformation = PasswordVisualTransformation('*'),
@@ -241,7 +273,6 @@ fun EditInformation(context: Context, editName: MutableState<String>, editRoles:
             WhatMean(mean = stringResource(id = R.string.my_roles), essential = true)
             editRoles.value = selectRadioButton(stringArrayResource(id = R.array.roles).toList())
             LaunchedEffect(check.value) {
-//                        checkDuplicate("user/real_user_group_name", invitationCodeValue.value, invitationCodeTest, 2, 1)
                 checkInvitationCode(invitationCodeTest, invitationCodeValue.value, groupNameThroughCode)
             }
             Spacer(modifier = Modifier.height(10.dp))
@@ -307,6 +338,19 @@ fun EditInformation(context: Context, editName: MutableState<String>, editRoles:
                                     fontWeight = FontWeight.Normal,
                                     modifier = Modifier.clickable {
                                         deleteInfo(context)
+                                        val groupRef = FirebaseAllPath.database.getReference(FirebaseAllPath.SERVICE + User.groupName).child("composition")
+                                        groupRef.addListenerForSingleValueEvent(object : ValueEventListener {
+                                            override fun onDataChange(snapshot: DataSnapshot) {
+                                                println(snapshot.childrenCount)
+                                                if(snapshot.childrenCount <= 1) {
+                                                    FirebaseAllPath.database.getReference("${FirebaseAllPath.GROUP_NAME_AND_INVITATION_CODE}/${User.groupName}").removeValue()
+                                                }
+                                            }
+
+                                            override fun onCancelled(error: DatabaseError) {
+                                            }
+
+                                        })
                                         generateDB("real/service/${groupNameThroughCode.value}/composition/${User.uid}", groupNameThroughCode.value, User.email, User.name, User.roles)
                                         generateDB("real/user/real_user/${User.uid}", groupNameThroughCode.value, User.email, User.name, User.roles)
                                         val intent = Intent(context, Login::class.java)

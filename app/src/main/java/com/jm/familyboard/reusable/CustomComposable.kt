@@ -207,7 +207,7 @@ fun HowToUseColumn(text: String) {
 @OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("SimpleDateFormat")
 @Composable
-fun ItemLayout(screenType: Int, date: String, title: String, content: String, commentNum: Long, writer: String, onShortClick: () -> Unit, onLongClick: () -> Unit) {
+fun ItemLayout(screenType: Int, date: String, title: String, content: String, commentNum: Long, writer: String, dismissAction: () -> Unit, onShortClick: () -> Unit, confirmAction: () -> Unit) {
     val shortClick = remember { mutableStateOf(false) }
     val longClick = remember { mutableStateOf(false) }
     val currentDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis())).split(":")[0]
@@ -286,10 +286,13 @@ fun ItemLayout(screenType: Int, date: String, title: String, content: String, co
         }
         ClickDialog(confirmText = confirmText, dismissText = dismissText, modifier = Modifier.fillMaxWidth(),
             onConfirm = {
-                onLongClick()
+                confirmAction()
                 longClick.value = !longClick.value
                         },
-            onDismiss = { longClick.value = !longClick.value }
+            onDismiss = {
+                dismissAction()
+                longClick.value = !longClick.value
+            }
         )
     }
     Divider()

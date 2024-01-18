@@ -1,6 +1,5 @@
 package com.jm.familyboard.mainFunction.announcement
 
-import android.annotation.SuppressLint
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.Spacer
@@ -31,10 +30,12 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jm.familyboard.R
+import com.jm.familyboard.User
 import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.EnterInfoMultiColumn
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
+import com.jm.familyboard.reusable.FirebaseAllPath
 import com.jm.familyboard.reusable.HowToUseColumn
 import com.jm.familyboard.reusable.ItemLayout
 import com.jm.familyboard.reusable.TextComposable
@@ -42,7 +43,6 @@ import com.jm.familyboard.reusable.date
 import com.jm.familyboard.reusable.textFieldKeyboard
 import com.jm.familyboard.reusable.today
 
-@SuppressLint("UnrememberedMutableState")
 @Composable
 fun AnnouncementScreen(mainNavController: NavHostController) {
     val context = LocalContext.current
@@ -83,8 +83,9 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                             content = announcement.content,
                             commentNum = 0L,
                             writer = announcement.writer,
+                            dismissAction = { FirebaseAllPath.database.getReference("${FirebaseAllPath.SERVICE}${User.groupName}/announcement/${announcement.date}").removeValue() },
                             onShortClick = {},
-                            onLongClick = {
+                            confirmAction = {
                                 announcementViewModel.vmModify.value = true
                                 announcementViewModel.vmTitle.value = announcement.title
                                 announcementViewModel.vmContent.value = announcement.content

@@ -38,11 +38,13 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.jm.familyboard.R
+import com.jm.familyboard.User
 import com.jm.familyboard.datamodel.AnswerResponse
 import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.EnterInfoMultiColumn
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
+import com.jm.familyboard.reusable.FirebaseAllPath
 import com.jm.familyboard.reusable.HowToUseColumn
 import com.jm.familyboard.reusable.ItemLayout
 import com.jm.familyboard.reusable.TextComposable
@@ -93,10 +95,11 @@ fun Q_AScreen(mainNavController: NavHostController) {
                             content = qa.questionContent.content,
                             commentNum = qa.answerCount,
                             writer = qa.writer.name,
+                            dismissAction = { FirebaseAllPath.database.getReference("${FirebaseAllPath.SERVICE}${User.groupName}/q_a/${qa.questionContent.date}").removeValue() },
                             onShortClick = {
                                 qaViewModel.vmQuestionContent.value = qa.questionContent.content
                                 currentNavController.navigate(qaArray[5]) },
-                            onLongClick = {
+                            confirmAction = {
                                 qaViewModel.vmModify.value = true
                                 qaViewModel.vmQuestionTitle.value = qa.questionTitle
                                 qaViewModel.vmQuestionContent.value = qa.questionContent.content

@@ -5,7 +5,6 @@ import android.content.Intent
 import android.widget.Toast
 import androidx.compose.runtime.mutableStateOf
 import androidx.lifecycle.ViewModel
-import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.database.DataSnapshot
 import com.google.firebase.database.DatabaseError
 import com.google.firebase.database.FirebaseDatabase
@@ -15,8 +14,6 @@ import com.jm.familyboard.MainActivity
 import com.jm.familyboard.R
 import com.jm.familyboard.User
 import com.jm.familyboard.reusable.FirebaseAllPath
-import com.jm.familyboard.reusable.deleteInfo
-import com.jm.familyboard.reusable.removeUserCredentials
 
 class MyInformationViewModel: ViewModel() {
     private val infoInGroup = FirebaseAllPath.database.getReference(FirebaseAllPath.SERVICE + User.groupName)
@@ -71,15 +68,5 @@ class MyInformationViewModel: ViewModel() {
         }
         User.name = editName.value
         User.roles = editRoles.value
-    }
-
-    fun logout(context: Context) {
-        FirebaseAuth.getInstance().signOut()
-        val intent = Intent(context, Login::class.java)
-        intent.flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
-        removeUserCredentials(context)
-        User.deleteInfo()
-        Toast.makeText(context, context.getString(R.string.done_logout), Toast.LENGTH_SHORT).show()
-        context.startActivity(intent)
     }
 }

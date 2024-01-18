@@ -14,10 +14,8 @@ import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.rememberScrollState
-import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material3.AlertDialog
-import androidx.compose.material3.Button
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.TextField
@@ -41,7 +39,6 @@ import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavHostController
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
@@ -49,6 +46,7 @@ import androidx.navigation.compose.rememberNavController
 import com.jm.familyboard.reusable.AppBar
 import com.jm.familyboard.reusable.CompleteButton
 import com.jm.familyboard.reusable.ConfirmPasswordSupportingText
+import com.jm.familyboard.reusable.EmailSupportingText
 import com.jm.familyboard.reusable.EnterInfoSingleColumn
 import com.jm.familyboard.reusable.FirebaseAllPath
 import com.jm.familyboard.reusable.NewPasswordSupportingText
@@ -119,8 +117,6 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
     val groupNameTest = remember { mutableIntStateOf(0) }
     val groupNameValue = remember { mutableStateOf("") }
     val groupNameEnabled = remember { mutableStateOf(true) }
-    val isGroupNameEnabled = remember { mutableStateOf(true) }
-    val groupCheck = remember { mutableStateOf(false) }
     val groupNameCheck = remember { mutableStateOf(false) }
 
     val rolesValue = remember { mutableStateOf("") }
@@ -152,12 +148,8 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                     textStyle = textSetting(isEmailEnabled.value),
                     visualTransformation = VisualTransformation.None,
                     keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Email),
-                    placeholder = {
-                        TextFieldPlaceholderOrSupporting(
-                            isPlaceholder = true,
-                            text = "${stringResource(id = R.string.sign_up_email)} ${stringResource(id = R.string.sign_up_placeholder)} ",
-                            correct = true
-                        )},
+                    placeholder = { TextFieldPlaceholderOrSupporting(true, "${stringResource(id = R.string.sign_up_email)} ${stringResource(id = R.string.sign_up_placeholder)} ", true)},
+                    supportingText = { EmailSupportingText(emailValue.value) },
                     modifier = Modifier
                         .padding(end = 4.dp)
                         .weight(1f),
@@ -171,7 +163,7 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier
                         .fillMaxHeight()
-                        .clickable { emailDuplicate.value = true })
+                        .clickable(enabled = isEmailValid(emailValue.value) == 3) { emailDuplicate.value = true })
             }
             if(emailDuplicate.value) {
                 AlertDialog(
@@ -180,7 +172,7 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                     text = {
                         val text = when (emailTest.intValue) {
                             1 -> stringResource(id = R.string.sign_up_email_valid)
-                            2, 3 -> stringResource(id = R.string.sign_up_email_valid_but_duplicate)
+                            2, 3 -> stringResource(id = R.string.sign_up_email_duplicate)
                             4 -> stringResource(id = R.string.sign_up_email_invalid)
                             else -> ""
                         }
@@ -245,16 +237,12 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 groupNameTest.intValue = 0
             }
             if(invitationCodeTest.intValue == 2) {
-                invitationCodeEnabled.value = false
                 groupNameTest.intValue = 0
-                isGroupNameEnabled.value = false
                 groupNameValue.value = ""
             }
             if(groupNameTest.intValue == 2) {
                 invitationCodeValue.value = ""
                 invitationCodeTest.intValue = 0
-                invitationCodeEnabled.value = false
-                isGroupNameEnabled.value = false
             }
             if(yes.value) {
                 LaunchedEffect(invitationCheck.value) {
@@ -313,7 +301,7 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                                     fontWeight = FontWeight.Normal,
                                     modifier = Modifier.clickable {
                                         invitationCheck.value = false
-//                                        invitationCodeEnabled.value = false
+                                        invitationCodeEnabled.value = false
                                     }
                                 )
                             }
@@ -323,11 +311,13 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                                 text = stringResource(id = R.string.cancel),
                                 style = MaterialTheme.typography.labelMedium.copy(Color.Red),
                                 fontWeight = FontWeight.Normal,
-                                modifier = Modifier.clickable {
-                                    invitationCheck.value = false
-//                                    invitationCodeEnabled.value = true
-//                                    invitationCodeValue.value = ""
-                                }
+                                modifier = Modifier
+                                    .padding(end = 8.dp)
+                                    .clickable {
+                                        invitationCheck.value = false
+                                        invitationCodeEnabled.value = true
+                                        invitationCodeValue.value = ""
+                                    }
                             )
                         }
                     )
@@ -341,7 +331,7 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                     TextField(
                         value = groupNameValue.value,
                         onValueChange = { groupNameValue.value = it },
-                        textStyle = textSetting(groupCheck.value),
+                        textStyle = textSetting(groupNameEnabled.value),
                         visualTransformation = VisualTransformation.None,
                         keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Done, keyboardType = KeyboardType.Text),
                         placeholder = {
@@ -354,7 +344,7 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                             .padding(end = 4.dp)
                             .weight(1f),
                         singleLine = true,
-//                        enabled = isGroupNameEnabled.value,
+                        enabled = groupNameEnabled.value,
                         colors = textFieldColors(Color.Blue.copy(0.2f))
                     )
                     TextComposable(
@@ -363,7 +353,54 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                         fontWeight = FontWeight.Normal,
                         modifier = Modifier
                             .fillMaxHeight()
-                            .clickable { groupNameCheck.value = true })
+                            .clickable { groupNameCheck.value = true }
+                    )
+                    if(groupNameCheck.value) {
+                        AlertDialog(
+                            onDismissRequest = { groupNameCheck.value = false },
+                            containerColor = Color.White,
+                            text = {
+                                val text = when(groupNameTest.intValue) {
+                                    1 -> stringResource(id = R.string.sign_up_group_name_duplicate)
+                                    2 -> stringResource(id = R.string.sign_up_group_name_not_duplicate)
+                                    else -> ""
+                                }
+                                TextComposable(
+                                    text = text,
+                                    style = MaterialTheme.typography.labelMedium.copy(Color.Black),
+                                    fontWeight = FontWeight.Normal,
+                                    modifier = Modifier
+                                )
+                            },
+                            confirmButton = {
+                                if(groupNameTest.intValue == 2) {
+                                    TextComposable(
+                                        text = stringResource(id = R.string.check),
+                                        style = MaterialTheme.typography.labelMedium.copy(Color.Black),
+                                        fontWeight = FontWeight.Normal,
+                                        modifier = Modifier.clickable {
+                                            groupNameCheck.value = false
+                                            groupNameEnabled.value = false
+                                        }
+                                    )
+                                }
+                            },
+                            dismissButton = {
+                                TextComposable(
+                                    text = stringResource(id = R.string.cancel),
+                                    style = MaterialTheme.typography.labelMedium.copy(Color.Red),
+                                    fontWeight = FontWeight.Normal,
+                                    modifier = Modifier
+                                        .padding(end = 8.dp)
+                                        .clickable {
+                                            groupNameCheck.value = false
+                                            groupNameEnabled.value = true
+                                            groupNameValue.value = ""
+                                        }
+                                )
+                            }
+                        )
+                    }
                 }
             }
             Spacer(modifier = Modifier.height(14.dp))
@@ -383,85 +420,6 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
             signUp(context, groupNameTest, if(invitationCodeValue.value.isNotEmpty()) groupNameThroughCode else groupNameValue, nameValue.value, rolesValue.value, emailValue.value, passwordValue.value, signUpNavController)
         }
     }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun NonCheckColumn(mean: String, tf: MutableState<String>, keyBordOption: KeyboardOptions, visualTransformation: VisualTransformation, modifier: Modifier) {
-    Column {
-        WhatMean(mean = mean, essential = true)
-        TextField(
-            value = tf.value,
-            onValueChange = { tf.value = it },
-            placeholder = { TextFieldPlaceholderOrSupporting(
-                isPlaceholder = true,
-                text = "$mean ${stringResource(id = R.string.sign_up_placeholder)}",
-                correct = true
-            )},
-            textStyle = textSetting(true),
-            keyboardOptions = keyBordOption,
-            visualTransformation = visualTransformation,
-            colors = textFieldColors(color = Color.Blue.copy(0.2f)),
-            modifier = modifier
-        )
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun CheckColumn(mean: String, tf: MutableState<String>, isEnabled: Boolean, visualTransformation: VisualTransformation, keyBordOption: KeyboardOptions, modifier: Modifier, buttonText: String, onClick: () -> Unit) {
-    Column {
-        WhatMean(mean = mean, essential = true)
-        Row(verticalAlignment = Alignment.CenterVertically) {
-            TextField(
-                value = tf.value,
-                onValueChange = { tf.value = it },
-                textStyle = textSetting(isEnabled),
-                visualTransformation =  visualTransformation,
-                keyboardOptions = keyBordOption,
-                placeholder = {
-                    TextFieldPlaceholderOrSupporting(
-                        isPlaceholder = true,
-                        text = "$mean ${stringResource(id = R.string.sign_up_placeholder)}",
-                        correct = true
-                    )
-                },
-                modifier = modifier,
-                enabled = isEnabled,
-                colors = textFieldColors(color = Color.Blue.copy(0.2f))
-            )
-            Button(onClick = { onClick() }) {
-                TextComposable(
-                    text = buttonText,
-                    style = MaterialTheme.typography.labelMedium.copy(Color.Black),
-                    fontWeight = FontWeight.Normal,
-                    modifier = Modifier
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun CheckDialog(content: String, dismissRequest: () -> Unit, onDismiss: @Composable () -> Unit, onConfirm: @Composable () -> Unit) {
-    AlertDialog(
-        onDismissRequest = { dismissRequest() },
-        text = {
-            TextComposable(
-                text = content,
-                style = MaterialTheme.typography.labelMedium.copy(Color.Black),
-                fontWeight = FontWeight.Normal,
-                modifier = Modifier
-            )
-        },
-        containerColor = Color.White,
-        properties = DialogProperties(usePlatformDefaultWidth = false),
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 10.dp),
-        confirmButton = { onConfirm() },
-        dismissButton = { onDismiss() },
-    )
 }
 
 @Composable
