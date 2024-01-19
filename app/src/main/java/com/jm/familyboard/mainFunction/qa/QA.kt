@@ -95,9 +95,11 @@ fun Q_AScreen(mainNavController: NavHostController) {
                             content = qa.questionContent.content,
                             commentNum = qa.answerCount,
                             writer = qa.writer.name,
+                            writerUid = qa.writer.uid,
                             dismissAction = { FirebaseAllPath.database.getReference("${FirebaseAllPath.SERVICE}${User.groupName}/q_a/${qa.questionContent.date}").removeValue() },
                             onShortClick = {
                                 qaViewModel.vmQuestionContent.value = qa.questionContent.content
+                                qaViewModel.vmQuestionDate.value = qa.questionContent.date
                                 currentNavController.navigate(qaArray[5]) },
                             confirmAction = {
                                 qaViewModel.vmModify.value = true
@@ -158,7 +160,7 @@ fun WriteQuestionScreen(modify: Boolean, questionTitle: MutableState<String>, qu
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(horizontal = 10.dp)
-                ) {}
+                )
                 Spacer(modifier = Modifier.height(6.dp))
                 EnterInfoMultiColumn(
                     mean = stringResource(R.string.q_a_content),

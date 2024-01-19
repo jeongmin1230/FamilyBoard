@@ -17,8 +17,8 @@ fun today(context: Context): String {
 fun EmailSupportingText(email: String) {
     if(email.isNotEmpty()) {
         when(isEmailValid(email)) {
-            3 -> { TextFieldPlaceholderOrSupporting(false, stringResource(id = R.string.sign_up_email_valid), true) }
-            4 -> { TextFieldPlaceholderOrSupporting(false, stringResource(id = R.string.sign_up_email_invalid), false) }
+            true -> { TextFieldPlaceholderOrSupporting(false, stringResource(id = R.string.sign_up_email_valid), true) }
+            false -> { TextFieldPlaceholderOrSupporting(false, stringResource(id = R.string.sign_up_email_invalid), false) }
         }
     }
 }
@@ -43,9 +43,9 @@ fun ConfirmPasswordSupportingText(newPw: String, confirmPw: String) {
     }
 }
 
-fun isEmailValid(email: String): Int {
+fun isEmailValid(email: String): Boolean {
     val emailPattern = Regex("[a-zA-Z\\d._-]+@[a-zA-Z\\d.-]+\\.[a-zA-Z]{2,}")
-    return if(email.matches(emailPattern)) 3 else if(!email.matches(emailPattern)) 4 else 5
+    return email.matches(emailPattern)
 }
 
 fun checkPasswordFormat(password: String): Boolean {

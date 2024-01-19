@@ -135,7 +135,7 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 keyboardOptions = textFieldKeyboard(ImeAction.Next, KeyboardType.Text),
                 visualTransformation = VisualTransformation.None,
                 modifier = Modifier.fillMaxWidth()
-            ) {}
+            )
 
             LaunchedEffect(emailDuplicate.value) {
                 checkDuplicate(FirebaseAllPath.USER_EMAIL, emailValue.value.replace("@", "_").replace(".", "_"), emailTest, 2, 1)
@@ -149,9 +149,9 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                     visualTransformation = VisualTransformation.None,
                     keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Email),
                     placeholder = { TextFieldPlaceholderOrSupporting(true, "${stringResource(id = R.string.sign_up_email)} ${stringResource(id = R.string.sign_up_placeholder)} ", true)},
-                    supportingText = { EmailSupportingText(emailValue.value) },
                     modifier = Modifier
                         .padding(end = 4.dp)
+                        .height(48.dp)
                         .weight(1f),
                     singleLine = true,
                     enabled = isEmailEnabled.value,
@@ -162,8 +162,11 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                     style = MaterialTheme.typography.labelMedium.copy(Color.Black),
                     fontWeight = FontWeight.Normal,
                     modifier = Modifier
-                        .fillMaxHeight()
-                        .clickable(enabled = isEmailValid(emailValue.value) == 3) { emailDuplicate.value = true })
+                        .align(Alignment.CenterVertically)
+                        .clickable(enabled = isEmailValid(emailValue.value)) { emailDuplicate.value = true })
+            }
+            if(emailValue.value.isNotEmpty()) {
+                EmailSupportingText(email = emailValue.value)
             }
             if(emailDuplicate.value) {
                 AlertDialog(
@@ -171,9 +174,8 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                     containerColor = Color.White,
                     text = {
                         val text = when (emailTest.intValue) {
-                            1 -> stringResource(id = R.string.sign_up_email_valid)
-                            2, 3 -> stringResource(id = R.string.sign_up_email_duplicate)
-                            4 -> stringResource(id = R.string.sign_up_email_invalid)
+                            1 -> stringResource(id = R.string.not_duplicate_email)
+                            2 -> stringResource(id = R.string.sign_up_email_duplicate)
                             else -> ""
                         }
                         TextComposable(
@@ -189,10 +191,12 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                                 text = stringResource(id = R.string.check),
                                 style = MaterialTheme.typography.labelMedium.copy(Color.Black),
                                 fontWeight = FontWeight.Normal,
-                                modifier = Modifier.clickable {
-                                    emailDuplicate.value = false
-                                    isEmailEnabled.value = false
-                                }
+                                modifier = Modifier
+                                    .padding(start = 4.dp)
+                                    .clickable {
+                                        emailDuplicate.value = false
+                                        isEmailEnabled.value = false
+                                    }
                             )
                         }
                     },
@@ -201,10 +205,12 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                             text = stringResource(id = R.string.cancel),
                             style = MaterialTheme.typography.labelMedium.copy(Color.Red),
                             fontWeight = FontWeight.Normal,
-                            modifier = Modifier.clickable {
-                                emailDuplicate.value = false
-                                emailValue.value = ""
-                            }
+                            modifier = Modifier
+                                .padding(end = 4.dp)
+                                .clickable {
+                                    emailDuplicate.value = false
+                                    emailValue.value = ""
+                                }
                         )
                     }
                 )
@@ -218,7 +224,8 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 visualTransformation = PasswordVisualTransformation('*'),
                 modifier = Modifier.fillMaxWidth()
-            ) { NewPasswordSupportingText(passwordValue.value)}
+            )
+            if(passwordValue.value.isNotEmpty()) NewPasswordSupportingText(newPassword = passwordValue.value)
 
             EnterInfoSingleColumn(
                 essential = true,
@@ -227,7 +234,8 @@ fun EnterInfo(context: Context, signUpNavController: NavHostController) {
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 visualTransformation = PasswordVisualTransformation('*'),
                 modifier = Modifier.fillMaxWidth()
-            ) { ConfirmPasswordSupportingText(passwordValue.value, passwordConfirmValue.value)}
+            )
+            if(passwordConfirmValue.value.isNotEmpty()) ConfirmPasswordSupportingText(passwordValue.value, passwordConfirmValue.value)
 
             WhatMean(mean = stringResource(id = R.string.sign_up_method), essential = true)
             Type(yes, no) {

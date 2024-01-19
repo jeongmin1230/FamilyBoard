@@ -148,7 +148,7 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
                     .fillMaxWidth()
-            ) {}
+            )
             EnterInfoSingleColumn(
                 essential = false,
                 mean = stringResource(id = R.string.enter_password),
@@ -158,7 +158,7 @@ fun LoginScreen(navController: NavHostController, loading: MutableState<Boolean>
                 modifier = Modifier
                     .padding(horizontal = 8.dp)
                     .fillMaxWidth()
-            ) {}
+            )
             Spacer(modifier = Modifier.height(10.dp))
             CompleteButton(
                 isEnable = email.value.isNotEmpty() && password.value.isNotEmpty(),

@@ -1,6 +1,7 @@
 package com.jm.familyboard.reusable
 
 import android.annotation.SuppressLint
+import android.widget.Toast
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
@@ -43,6 +44,7 @@ import com.jm.familyboard.R
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.RectangleShape
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.PlatformTextStyle
@@ -207,7 +209,7 @@ fun HowToUseColumn(text: String) {
 @OptIn(ExperimentalFoundationApi::class)
 @SuppressLint("SimpleDateFormat")
 @Composable
-fun ItemLayout(screenType: Int, date: String, title: String, content: String, commentNum: Long, writer: String, dismissAction: () -> Unit, onShortClick: () -> Unit, confirmAction: () -> Unit) {
+fun ItemLayout(screenType: Int, date: String, title: String, content: String, commentNum: Long, writer: String, writerUid: String, dismissAction: () -> Unit, onShortClick: () -> Unit, confirmAction: () -> Unit) {
     val shortClick = remember { mutableStateOf(false) }
     val longClick = remember { mutableStateOf(false) }
     val currentDate = SimpleDateFormat(stringResource(id = R.string.announcement_date_format)).format(Date(System.currentTimeMillis())).split(":")[0]
@@ -273,7 +275,7 @@ fun ItemLayout(screenType: Int, date: String, title: String, content: String, co
         }
 
     }
-    if(longClick.value) {
+    if(writerUid == User.uid && longClick.value) {
         val confirmText = when (screenType) {
             0, 1 -> stringResource(id = R.string.edit)
             2 -> stringResource(id = R.string.withdrawal)
@@ -284,7 +286,7 @@ fun ItemLayout(screenType: Int, date: String, title: String, content: String, co
             2 -> stringResource(id = R.string.cancel)
             else -> ""
         }
-        ClickDialog(confirmText = confirmText, dismissText = dismissText, modifier = Modifier.fillMaxWidth(),
+        ClickDialog(longClick = longClick, confirmText = confirmText, dismissText = dismissText, modifier = Modifier.fillMaxWidth(),
             onConfirm = {
                 confirmAction()
                 longClick.value = !longClick.value
@@ -294,13 +296,15 @@ fun ItemLayout(screenType: Int, date: String, title: String, content: String, co
                 longClick.value = !longClick.value
             }
         )
+    } else if(longClick.value) {
+        Toast.makeText(LocalContext.current, stringResource(id = R.string.edit_warning), Toast.LENGTH_SHORT).show()
     }
     Divider()
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun EnterInfoSingleColumn(essential: Boolean, mean: String, tfValue: MutableState<String>, keyboardOptions: KeyboardOptions, visualTransformation: VisualTransformation, modifier: Modifier, supportingText: @Composable () -> Unit) {
+fun EnterInfoSingleColumn(essential: Boolean, mean: String, tfValue: MutableState<String>, keyboardOptions: KeyboardOptions, visualTransformation: VisualTransformation, modifier: Modifier) {
     Column(modifier = modifier) {
         WhatMean(mean = mean, essential = essential)
         TextField(
@@ -314,9 +318,10 @@ fun EnterInfoSingleColumn(essential: Boolean, mean: String, tfValue: MutableStat
             placeholder = { TextFieldPlaceholderOrSupporting(isPlaceholder = true, text = "$mean ${stringResource(id = R.string.sign_up_placeholder)}", correct = true)},
             interactionSource = MutableInteractionSource(),
             visualTransformation = visualTransformation,
-            modifier = Modifier.fillMaxWidth(),
+            modifier = Modifier
+                .height(48.dp)
+                .fillMaxWidth(),
             keyboardOptions = keyboardOptions,
-            supportingText = { supportingText() },
             singleLine = true,
             colors = textFieldColors(Color.Blue.copy(0.2f))
         )
@@ -408,9 +413,9 @@ fun CompleteButton(isEnable: Boolean, color: Color, text: String, modifier: Modi
 }
 
 @Composable
-fun ClickDialog(confirmText: String, dismissText: String, modifier: Modifier, onConfirm: () -> Unit, onDismiss: () -> Unit) {
+fun ClickDialog(longClick: MutableState<Boolean>, confirmText: String, dismissText: String, modifier: Modifier, onConfirm: () -> Unit, onDismiss: () -> Unit) {
     AlertDialog(
-        onDismissRequest = onDismiss,
+        onDismissRequest = { longClick.value = false },
         confirmButton = {
             TextComposable(
                 text = confirmText,
@@ -543,9 +548,9 @@ fun TextFieldPlaceholderOrSupporting(isPlaceholder: Boolean, text: String, corre
     } else {
         TextComposable(
             text = text,
-            style = MaterialTheme.typography.bodySmall.copy(color = if (correct) Color.Blue else Color.Red, fontWeight = FontWeight.W400),
+            style = MaterialTheme.typography.labelSmall.copy(color = if (correct) Color.Blue else Color.Red, fontWeight = FontWeight.W400),
             fontWeight = FontWeight.Normal,
-            modifier = Modifier.padding(top = 2.dp)
+            modifier = Modifier.padding(start = 12.dp, top = 2.dp)
         )
     }
 }

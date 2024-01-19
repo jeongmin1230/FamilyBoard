@@ -210,7 +210,7 @@ fun CheckPassword(context: Context, complete: () -> Unit) {
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 visualTransformation = PasswordVisualTransformation('*'),
                 modifier = Modifier.fillMaxWidth()
-            ) {}
+            )
         }
         CompleteButton(
             isEnable = editCurrentPassword.value.isNotEmpty(),
@@ -250,7 +250,7 @@ fun EditInformation(context: Context, editName: MutableState<String>, editRoles:
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 visualTransformation = VisualTransformation.None,
                 modifier = Modifier.fillMaxWidth()
-            ) {}
+            )
             Spacer(modifier = Modifier.height(10.dp))
             EnterInfoSingleColumn(
                 essential = true,
@@ -259,7 +259,8 @@ fun EditInformation(context: Context, editName: MutableState<String>, editRoles:
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 visualTransformation = PasswordVisualTransformation('*'),
                 modifier = Modifier.fillMaxWidth()
-            ) { NewPasswordSupportingText(editNewPassword.value) }
+            )
+            if(editNewPassword.value.isNotEmpty()) NewPasswordSupportingText(editNewPassword.value)
             Spacer(modifier = Modifier.height(10.dp))
             EnterInfoSingleColumn(
                 essential = true,
@@ -268,7 +269,8 @@ fun EditInformation(context: Context, editName: MutableState<String>, editRoles:
                 keyboardOptions = textFieldKeyboard(imeAction = ImeAction.Next, keyboardType = KeyboardType.Text),
                 visualTransformation = PasswordVisualTransformation('*'),
                 modifier = Modifier.fillMaxWidth()
-            ) { ConfirmPasswordSupportingText(editNewPassword.value, editConfirmPassword.value) }
+            )
+            if(editConfirmPassword.value.isNotEmpty()) ConfirmPasswordSupportingText(editNewPassword.value, editConfirmPassword.value)
             Spacer(modifier = Modifier.height(10.dp))
             WhatMean(mean = stringResource(id = R.string.my_roles), essential = true)
             editRoles.value = selectRadioButton(stringArrayResource(id = R.array.roles).toList())

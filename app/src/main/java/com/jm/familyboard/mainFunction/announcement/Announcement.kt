@@ -83,6 +83,7 @@ fun AnnouncementScreen(mainNavController: NavHostController) {
                             content = announcement.content,
                             commentNum = 0L,
                             writer = announcement.writer,
+                            writerUid = announcement.writerUid,
                             dismissAction = { FirebaseAllPath.database.getReference("${FirebaseAllPath.SERVICE}${User.groupName}/announcement/${announcement.date}").removeValue() },
                             onShortClick = {},
                             confirmAction = {
@@ -125,7 +126,7 @@ fun RegisterNotice(modify: Boolean, vmTitle: MutableState<String>, vmContent: Mu
                     modifier = Modifier
                         .fillMaxWidth()
                         .padding(start = 10.dp, end = 10.dp, bottom = 14.dp)
-                ) {}
+                )
                 Spacer(modifier = Modifier.height(6.dp))
                 EnterInfoMultiColumn(
                     mean = stringResource(R.string.content),
