@@ -124,7 +124,7 @@ fun Q_AScreen(mainNavController: NavHostController) {
                     modify = qaViewModel.vmModify.value,
                     questionTitle = qaViewModel.vmQuestionTitle,
                     questionContent = qaViewModel.vmQuestionContent,
-                    questionDate = date(isModify = false, currentDate = today(context), writeDate = qaViewModel.vmQuestionDate.value)
+                    questionDate = date(isModify = qaViewModel.vmModify.value, currentDate = today(context), writeDate = qaViewModel.vmQuestionDate.value)
                 ) { qaViewModel.writeQuestion(context, currentNavController) }
             }
         }
